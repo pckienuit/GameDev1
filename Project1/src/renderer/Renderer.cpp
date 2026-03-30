@@ -2,7 +2,9 @@
 #include "Renderer.h"
 #include "core/Window.h"
 #include <stdexcept>
+#include <d3dcompiler.h>
 
+#pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -64,6 +66,8 @@ Renderer::Renderer(const Window& window) {
     vp.Height         = static_cast<float>(window.GetHeight());
     vp.MaxDepth       = 1.0f;
     _context->RSSetViewports(1, &vp);
+
+    load_shaders();
 }
 
 void Renderer::BeginFrame(float r, float g, float b) {
@@ -73,4 +77,81 @@ void Renderer::BeginFrame(float r, float g, float b) {
 
 void Renderer::EndFrame() {
     _swap_chain->Present(1, 0);  // 1 = vsync on
+}
+
+void Renderer::load_shaders() {
+    ComPtr<ID3DBlob> vs_blob, ps_blob, error_blob;
+
+    // Compile Vertex Shader từ file
+    HRESULT hr = D3DCompileFromFile(
+        L"shaders\\sprite.vs.hlsl", nullptr, nullptr,
+        "main", "vs_5_0",
+        D3DCOMPILE_DEBUG, 0,
+        &vs_blob, &error_blob
+    );
+    if (FAILED(hr)) {
+        if (error_blob)
+            OutputDebugStringA((char*)error_blob->GetBufferPointer());
+        throw std::runtime_error("Failed to compile vertex shader");
+    }
+
+    // TODO ①: Compile Pixel Shader tương tự
+    //          Đổi "sprite.vs.hlsl" → "sprite.ps.hlsl"
+    //          Đổi "vs_5_0" → "ps_5_0"
+    //          Lưu vào ps_blob
+    hr = D3DCompileFromFile(
+        L"shaders\\sprite.ps.hlsl", nullptr, nullptr,
+        "main", "ps_5_0",
+        D3DCOMPILE_DEBUG, 0,
+        &ps_blob, &error_blob
+    );
+    if (FAILED(hr)) {
+        if (error_blob)
+            OutputDebugStringA((char*)error_blob->GetBufferPointer());
+        throw std::runtime_error("Failed to compile pixel shader");
+    }
+
+    // Tạo shader objects từ bytecode
+    // TODO ②: _device->CreateVertexShader(
+    //              vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+    //              nullptr, &_vertex_shader)
+
+    // TODO ③: _device->CreatePixelShader(...)
+    //          tương tự nhưng dùng ps_blob và &_pixel_shader
+    hr = _device->CreateVertexShader(
+        vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+        nullptr, &_vertex_shader
+    );
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create vertex shader");
+    }
+
+    hr = _device->CreatePixelShader(
+        ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(),
+        nullptr, &_pixel_shader
+    );
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create pixel shader");
+    }
+    
+
+    // Mô tả layout vertex cho GPU — phải khớp với C++ struct sẽ tạo sau
+    D3D11_INPUT_ELEMENT_DESC layout[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0,  8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    //                                                        ^^ offset: COLOR bắt đầu sau 8 bytes của float2
+    };
+
+    // TODO ④: _device->CreateInputLayout(
+    //              layout, 2,
+    //              vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+    //              &_input_layout)
+    hr = _device->CreateInputLayout(
+        layout, 2,
+        vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+        &_input_layout
+    );
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create input layout");
+    }
 }

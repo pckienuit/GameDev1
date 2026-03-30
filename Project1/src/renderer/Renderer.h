@@ -23,4 +23,11 @@ private:
     ComPtr<IDXGISwapChain>      _swap_chain;
 
     ComPtr<ID3D11RenderTargetView>  _render_target_view;
+
+    // Shader objects
+    ComPtr<ID3D11VertexShader>  _vertex_shader;
+    ComPtr<ID3D11PixelShader>   _pixel_shader;
+    ComPtr<ID3D11InputLayout>   _input_layout;
+    // Helpers
+    void load_shaders();
 };
