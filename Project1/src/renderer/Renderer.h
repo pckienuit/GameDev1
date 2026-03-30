@@ -11,7 +11,11 @@ class Window;
 class Renderer {
 public:
     explicit Renderer(const Window& window);
+
     ~Renderer() = default;
+    
+    void DrawQuad(float x, float y, float w, float h,
+              float r, float g, float b, float a = 1.0f);
 
     void BeginFrame(float r, float g, float b);
 
@@ -31,7 +35,9 @@ private:
     
     //Buffer
     ComPtr<ID3D11Buffer> _screen_cb;
-    
+    ComPtr<ID3D11Buffer> _quad_vb;
+    ComPtr<ID3D11RasterizerState> _rasterizer_state;  // 2D: no culling
+
     // Helpers
     void load_shaders(const Window& window);
 };

@@ -74,6 +74,14 @@ Renderer::Renderer(const Window& window) {
     vp.MaxDepth       = 1.0f;
     _context->RSSetViewports(1, &vp);
 
+    // 2D engine: disable backface culling (sprites can be flipped)
+    D3D11_RASTERIZER_DESC rs_desc = {};
+    rs_desc.FillMode              = D3D11_FILL_SOLID;
+    rs_desc.CullMode              = D3D11_CULL_NONE;
+    rs_desc.FrontCounterClockwise = FALSE;
+    _device->CreateRasterizerState(&rs_desc, &_rasterizer_state);
+    _context->RSSetState(_rasterizer_state.Get());
+
     load_shaders(window);
 }
 
@@ -183,4 +191,47 @@ void Renderer::load_shaders(const Window& window) {
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create constant buffer");
     }
+}
+
+void Renderer::DrawQuad(float x, float y, float w, float h,
+                         float r, float g, float b, float a)
+{
+    // 4 góc của quad — tọa độ pixel, shader sẽ convert sang clip space
+    struct Vertex { float x, y, r, g, b, a; };
+
+    Vertex verts[4] = {
+        { x,     y,     r, g, b, a },  // TL (top-left)
+        { x + w, y,     r, g, b, a },  // TR (top-right)
+        { x,     y + h, r, g, b, a },  // BL (bottom-left)  ← đổi chỗ với BR
+        { x + w, y + h, r, g, b, a },  // BR (bottom-right)
+    };
+
+    // TODO ①: Tạo Vertex Buffer (dynamic vì thay đổi mỗi frame)
+    D3D11_BUFFER_DESC bd  = {};
+    bd.ByteWidth           = sizeof(verts);
+    bd.Usage               = D3D11_USAGE_DYNAMIC;
+    bd.BindFlags           = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+
+    D3D11_SUBRESOURCE_DATA vd = {};
+    vd.pSysMem = verts;
+
+    // TODO: _device->CreateBuffer(&bd, &vd, &_quad_vb)
+    HRESULT hr = _device->CreateBuffer(&bd, &vd, &_quad_vb);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create vertex buffer");
+    }
+
+    // TODO ②: Bind pipeline — gắn mọi thứ vào trước khi draw
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    _context->IASetVertexBuffers(0, 1, _quad_vb.GetAddressOf(), &stride, &offset);
+    _context->IASetInputLayout(_input_layout.Get());
+    _context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    _context->VSSetShader(_vertex_shader.Get(), nullptr, 0);
+    _context->PSSetShader(_pixel_shader.Get(), nullptr, 0);
+
+    // TODO ③: Draw! 4 vertices, bắt đầu từ index 0
+    // _context->Draw(???, 0);
+    _context->Draw(4, 0);
 }
