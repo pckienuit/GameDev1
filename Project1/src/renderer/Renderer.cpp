@@ -8,6 +8,13 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 
+// Phải khớp với cbuffer trong HLSL — bội số 16 bytes
+struct ScreenConstants {
+    float screen_width;
+    float screen_height;
+    float padding[2];
+};
+
 Renderer::Renderer(const Window& window) {
 
     DXGI_SWAP_CHAIN_DESC sd               = {};
@@ -67,19 +74,23 @@ Renderer::Renderer(const Window& window) {
     vp.MaxDepth       = 1.0f;
     _context->RSSetViewports(1, &vp);
 
-    load_shaders();
+    load_shaders(window);
 }
 
 void Renderer::BeginFrame(float r, float g, float b) {
+    // Bind constant buffer vào slot b0 của VS
+    _context->VSSetConstantBuffers(0, 1, _screen_cb.GetAddressOf());
+    
     float color[4] = {r, g, b, 1.0f};
     _context->ClearRenderTargetView(_render_target_view.Get(), color);
 }
+
 
 void Renderer::EndFrame() {
     _swap_chain->Present(1, 0);  // 1 = vsync on
 }
 
-void Renderer::load_shaders() {
+void Renderer::load_shaders(const Window& window) {
     ComPtr<ID3DBlob> vs_blob, ps_blob, error_blob;
 
     // Compile Vertex Shader từ file
@@ -153,5 +164,23 @@ void Renderer::load_shaders() {
     );
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create input layout");
+    }
+
+    D3D11_BUFFER_DESC cbd = {};
+    cbd.ByteWidth      = sizeof(ScreenConstants);
+    cbd.Usage          = D3D11_USAGE_IMMUTABLE;  // không đổi sau khi tạo
+    cbd.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+
+    ScreenConstants sc = { window.GetWidth(), window.GetHeight() };  // TODO: dùng window.GetWidth/Height
+
+    D3D11_SUBRESOURCE_DATA init_data = {};
+    init_data.pSysMem = &sc;
+
+    // TODO: _device->CreateBuffer(&cbd, &init_data, &_screen_cb)
+    //       Kiểm tra FAILED(hr) → throw
+
+    hr = _device->CreateBuffer(&cbd, &init_data, &_screen_cb);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create constant buffer");
     }
 }

@@ -12,11 +12,21 @@ struct VSOutput {
     float4 color    : COLOR;
 };
 
+cbuffer ScreenBuffer : register(b0) {
+    float screen_width;
+    float screen_height;
+};
+
 VSOutput main(VSInput input) {
     VSOutput output;
-    // TODO: Gán output.position từ input.position
-    // Gợi ý: float4(x, y, z, w) — z=0 vì 2D, w=1 cho perspective divide
-    output.position = float4(input.position.x, input.position.y, 0.0f, 1.0f);
+    
+    // Convert pixel coords → clip space
+    float cx = (input.position.x / screen_width)  * 2.0f - 1.0f;
+    float cy = (input.position.y / screen_height) * (-2.0f) + 1.0f;
+    
+    output.position = float4(cx, cy, 0.0f, 1.0f);
     output.color    = input.color;
     return output;
 }
+
+

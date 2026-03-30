@@ -28,6 +28,10 @@ private:
     ComPtr<ID3D11VertexShader>  _vertex_shader;
     ComPtr<ID3D11PixelShader>   _pixel_shader;
     ComPtr<ID3D11InputLayout>   _input_layout;
+    
+    //Buffer
+    ComPtr<ID3D11Buffer> _screen_cb;
+    
     // Helpers
-    void load_shaders();
+    void load_shaders(const Window& window);
 };
