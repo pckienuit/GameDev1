@@ -137,10 +137,12 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
+    <ClCompile Include="src\renderer\SpriteBatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
+    <ClInclude Include="src\renderer\SpriteBatch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

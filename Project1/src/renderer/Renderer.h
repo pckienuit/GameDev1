@@ -21,6 +21,9 @@ public:
 
     void EndFrame();
 
+    ID3D11Device* GetDevice() const { return _device.Get(); }
+    ID3D11DeviceContext* GetContext() const { return _context.Get(); }
+
 private:
     ComPtr<ID3D11Device>        _device;
     ComPtr<ID3D11DeviceContext> _context;
