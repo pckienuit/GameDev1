@@ -157,7 +157,8 @@ void Renderer::load_shaders(const Window& window) {
     // Mô tả layout vertex cho GPU — phải khớp với C++ struct sẽ tạo sau
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0,  8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0,  8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     //                                                        ^^ offset: COLOR bắt đầu sau 8 bytes của float2
     };
 
@@ -166,7 +167,7 @@ void Renderer::load_shaders(const Window& window) {
     //              vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
     //              &_input_layout)
     hr = _device->CreateInputLayout(
-        layout, 2,
+        layout, 3,
         vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
         &_input_layout
     );

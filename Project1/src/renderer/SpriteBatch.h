@@ -2,12 +2,14 @@
 #include <vector>
 #include <d3d11.h>
 #include <wrl/client.h>
+#include "Texture.h"
 
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 struct SpriteVertex {
     float x, y;      // pixel position
+    float u, v;      // texture coordinate [0, 1]
     float r, g, b, a; // color
 };
 
@@ -19,6 +21,7 @@ public:
     void Begin();  // TODO: clear _vertices
 
     void Draw(float x, float y, float w, float h,
+              const Texture& tex,
               float r, float g, float b, float a);
     // TODO: push 4 vertices (hoặc 6 nếu dùng index buffer) vào _vertices
 
@@ -36,6 +39,10 @@ private:
     ComPtr<ID3D11VertexShader> _vertex_shader;
     ComPtr<ID3D11PixelShader>  _pixel_shader;
     ComPtr<ID3D11InputLayout>  _input_layout;
+
+    //texture
+    ComPtr<ID3D11SamplerState>  _sampler;
+    ID3D11ShaderResourceView*   _current_srv = nullptr;
     
     void compile_shaders(ID3D11Device* device);
 };

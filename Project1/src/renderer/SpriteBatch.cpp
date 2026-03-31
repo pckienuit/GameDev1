@@ -21,6 +21,17 @@ SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
         throw std::runtime_error("Failed to create vertex buffer");
     }
 
+    D3D11_SAMPLER_DESC sd    = {};
+    sd.Filter                = D3D11_FILTER_MIN_MAG_MIP_POINT; // pixel art style
+    sd.AddressU              = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sd.AddressV              = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sd.AddressW              = D3D11_TEXTURE_ADDRESS_CLAMP;
+    
+    hr = device->CreateSamplerState(&sd, &_sampler);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create sampler state");
+    }
+
     _vertices.reserve(MAX_SPRITES * NUM_VERTICES_PER_SPRITE);
 
     compile_shaders(device);
@@ -31,19 +42,25 @@ void SpriteBatch::Begin() {
 }
 
 void SpriteBatch::Draw(float x, float y, float w, float h,
-              float r, float g, float b, float a) {
+                       const Texture& tex,
+                       float r, float g, float b, float a) {
+ 
     if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE) {
         End();
         Begin();
     }
+    
+    _current_srv = tex.GetSRV();
 
-    _vertices.push_back({x, y, r, g, b, a});
-    _vertices.push_back({x + w, y, r, g, b, a});
-    _vertices.push_back({x, y + h, r, g, b, a});
+    //Tria1
+    _vertices.push_back({x, y, 0.0f, 0.0f, r, g, b, a}); //TL
+    _vertices.push_back({x + w, y, 1.0f, 0.0f, r, g, b, a}); //TR
+    _vertices.push_back({x, y + h, 0.0f, 1.0f, r, g, b, a}); //BL
 
-    _vertices.push_back({x, y + h, r, g, b, a});
-    _vertices.push_back({x + w, y + h, r, g, b, a});
-    _vertices.push_back({x + w, y, r, g, b, a});
+    //Tria2
+    _vertices.push_back({x, y + h, 0.0f, 1.0f, r, g, b, a}); //BL
+    _vertices.push_back({x + w, y + h, 1.0f, 1.0f, r, g, b, a}); //BR
+    _vertices.push_back({x + w, y, 1.0f, 0.0f, r, g, b, a}); //TR
 }
 
 void SpriteBatch::End() {
@@ -63,9 +80,14 @@ void SpriteBatch::End() {
     UINT offset = 0;
     _context->IASetVertexBuffers(0, 1, _vertex_buffer.GetAddressOf(), &stride, &offset);
     _context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     _context->PSSetShader(_pixel_shader.Get(), nullptr, 0);
     _context->VSSetShader(_vertex_shader.Get(), nullptr, 0);
     _context->IASetInputLayout(_input_layout.Get());
+    
+    _context->PSSetShaderResources(0, 1, &_current_srv);
+    _context->PSSetSamplers(0, 1, _sampler.GetAddressOf());
+
     _context->Draw((UINT)_vertices.size(), 0);
   
 }
@@ -90,10 +112,11 @@ void SpriteBatch::compile_shaders(ID3D11Device* device) {
     // Input layout
     D3D11_INPUT_ELEMENT_DESC ied[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    hr = device->CreateInputLayout(ied, 2,
+    hr = device->CreateInputLayout(ied, 3,
                                    vs_blob->GetBufferPointer(),
                                    vs_blob->GetBufferSize(),
                                    &_input_layout);

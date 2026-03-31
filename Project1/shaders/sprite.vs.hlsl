@@ -4,11 +4,13 @@
 
 struct VSInput {
     float2 position : POSITION;
+    float2 uv       : TEXCOORD;
     float4 color    : COLOR;
 };
 
 struct VSOutput {
     float4 position : SV_Position; // SV_ = System Value, bắt buộc
+    float2 uv       : TEXCOORD;
     float4 color    : COLOR;
 };
 
@@ -26,6 +28,8 @@ VSOutput main(VSInput input) {
     
     output.position = float4(cx, cy, 0.0f, 1.0f);
     output.color    = input.color;
+    output.uv       = input.uv;
+    
     return output;
 }
 
