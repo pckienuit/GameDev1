@@ -51,6 +51,18 @@ Renderer::Renderer(const Window& window) {
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create device and swap chain");
     }
+
+    D3D11_BUFFER_DESC cbd = {};
+    cbd.ByteWidth  = sizeof(ScreenConstants);
+    cbd.Usage      = D3D11_USAGE_IMMUTABLE;
+    cbd.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
+    ScreenConstants sc   = { (float)window.GetWidth(), (float)window.GetHeight() };
+    D3D11_SUBRESOURCE_DATA cb_data = {};
+    cb_data.pSysMem = &sc;
+    hr = _device->CreateBuffer(&cbd, &cb_data, &_screen_cb);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create screen constant buffer");
+    }
     
     ComPtr<ID3D11Texture2D> back_buffer;
 
@@ -81,8 +93,6 @@ Renderer::Renderer(const Window& window) {
     rs_desc.FrontCounterClockwise = FALSE;
     _device->CreateRasterizerState(&rs_desc, &_rasterizer_state);
     _context->RSSetState(_rasterizer_state.Get());
-
-    load_shaders(window);
 }
 
 void Renderer::BeginFrame(float r, float g, float b) {
@@ -96,143 +106,4 @@ void Renderer::BeginFrame(float r, float g, float b) {
 
 void Renderer::EndFrame() {
     _swap_chain->Present(1, 0);  // 1 = vsync on
-}
-
-void Renderer::load_shaders(const Window& window) {
-    ComPtr<ID3DBlob> vs_blob, ps_blob, error_blob;
-
-    // Compile Vertex Shader từ file
-    HRESULT hr = D3DCompileFromFile(
-        L"shaders\\sprite.vs.hlsl", nullptr, nullptr,
-        "main", "vs_5_0",
-        D3DCOMPILE_DEBUG, 0,
-        &vs_blob, &error_blob
-    );
-    if (FAILED(hr)) {
-        if (error_blob)
-            OutputDebugStringA((char*)error_blob->GetBufferPointer());
-        throw std::runtime_error("Failed to compile vertex shader");
-    }
-
-    // TODO ①: Compile Pixel Shader tương tự
-    //          Đổi "sprite.vs.hlsl" → "sprite.ps.hlsl"
-    //          Đổi "vs_5_0" → "ps_5_0"
-    //          Lưu vào ps_blob
-    hr = D3DCompileFromFile(
-        L"shaders\\sprite.ps.hlsl", nullptr, nullptr,
-        "main", "ps_5_0",
-        D3DCOMPILE_DEBUG, 0,
-        &ps_blob, &error_blob
-    );
-    if (FAILED(hr)) {
-        if (error_blob)
-            OutputDebugStringA((char*)error_blob->GetBufferPointer());
-        throw std::runtime_error("Failed to compile pixel shader");
-    }
-
-    // Tạo shader objects từ bytecode
-    // TODO ②: _device->CreateVertexShader(
-    //              vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
-    //              nullptr, &_vertex_shader)
-
-    // TODO ③: _device->CreatePixelShader(...)
-    //          tương tự nhưng dùng ps_blob và &_pixel_shader
-    hr = _device->CreateVertexShader(
-        vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
-        nullptr, &_vertex_shader
-    );
-    if (FAILED(hr)) {
-        throw std::runtime_error("Failed to create vertex shader");
-    }
-
-    hr = _device->CreatePixelShader(
-        ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(),
-        nullptr, &_pixel_shader
-    );
-    if (FAILED(hr)) {
-        throw std::runtime_error("Failed to create pixel shader");
-    }
-    
-
-    // Mô tả layout vertex cho GPU — phải khớp với C++ struct sẽ tạo sau
-    D3D11_INPUT_ELEMENT_DESC layout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0,  8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    //                                                        ^^ offset: COLOR bắt đầu sau 8 bytes của float2
-    };
-
-    // TODO ④: _device->CreateInputLayout(
-    //              layout, 2,
-    //              vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
-    //              &_input_layout)
-    hr = _device->CreateInputLayout(
-        layout, 3,
-        vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
-        &_input_layout
-    );
-    if (FAILED(hr)) {
-        throw std::runtime_error("Failed to create input layout");
-    }
-
-    D3D11_BUFFER_DESC cbd = {};
-    cbd.ByteWidth      = sizeof(ScreenConstants);
-    cbd.Usage          = D3D11_USAGE_IMMUTABLE;  // không đổi sau khi tạo
-    cbd.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
-
-    ScreenConstants sc = { window.GetWidth(), window.GetHeight() };  // TODO: dùng window.GetWidth/Height
-
-    D3D11_SUBRESOURCE_DATA init_data = {};
-    init_data.pSysMem = &sc;
-
-    // TODO: _device->CreateBuffer(&cbd, &init_data, &_screen_cb)
-    //       Kiểm tra FAILED(hr) → throw
-
-    hr = _device->CreateBuffer(&cbd, &init_data, &_screen_cb);
-    if (FAILED(hr)) {
-        throw std::runtime_error("Failed to create constant buffer");
-    }
-}
-
-void Renderer::DrawQuad(float x, float y, float w, float h,
-                         float r, float g, float b, float a)
-{
-    // 4 góc của quad — tọa độ pixel, shader sẽ convert sang clip space
-    struct Vertex { float x, y, r, g, b, a; };
-
-    Vertex verts[4] = {
-        { x,     y,     r, g, b, a },  // TL (top-left)
-        { x + w, y,     r, g, b, a },  // TR (top-right)
-        { x,     y + h, r, g, b, a },  // BL (bottom-left)  ← đổi chỗ với BR
-        { x + w, y + h, r, g, b, a },  // BR (bottom-right)
-    };
-
-    // TODO ①: Tạo Vertex Buffer (dynamic vì thay đổi mỗi frame)
-    D3D11_BUFFER_DESC bd  = {};
-    bd.ByteWidth           = sizeof(verts);
-    bd.Usage               = D3D11_USAGE_DYNAMIC;
-    bd.BindFlags           = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-
-    D3D11_SUBRESOURCE_DATA vd = {};
-    vd.pSysMem = verts;
-
-    // TODO: _device->CreateBuffer(&bd, &vd, &_quad_vb)
-    HRESULT hr = _device->CreateBuffer(&bd, &vd, &_quad_vb);
-    if (FAILED(hr)) {
-        throw std::runtime_error("Failed to create vertex buffer");
-    }
-
-    // TODO ②: Bind pipeline — gắn mọi thứ vào trước khi draw
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    _context->IASetVertexBuffers(0, 1, _quad_vb.GetAddressOf(), &stride, &offset);
-    _context->IASetInputLayout(_input_layout.Get());
-    _context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    _context->VSSetShader(_vertex_shader.Get(), nullptr, 0);
-    _context->PSSetShader(_pixel_shader.Get(), nullptr, 0);
-
-    // TODO ③: Draw! 4 vertices, bắt đầu từ index 0
-    // _context->Draw(???, 0);
-    _context->Draw(4, 0);
 }
