@@ -1,4 +1,3 @@
-// src/renderer/Renderer.cpp
 #include "Renderer.h"
 #include "core/Window.h"
 #include <stdexcept>
