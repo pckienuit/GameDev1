@@ -3,7 +3,8 @@
 #include "core/Input.h"
 #include "renderer/Renderer.h"
 #include "renderer/SpriteBatch.h"
-#include "renderer/Texture.h"       // ← thêm
+#include "renderer/Texture.h"
+#include "tilemap/Tilemap.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -23,6 +24,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     constexpr float JUMP_SPEED  = 800.0f;  // px/s
     constexpr float GRAVITY     = 1200.0f;  // px/s²
     constexpr float DT          = static_cast<float>(GameLoop::FIXED_DT);
+
+    Tilemap tilemap(20, 15, 32);
+
+    constexpr int level_data[] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+
+    for (int row = 0; row < tilemap.GetRows(); ++row) {
+        for (int col = 0; col < tilemap.GetCols(); ++col) {
+            tilemap.GetTile(col, row).type = 
+                static_cast<TileType>(level_data[row*tilemap.GetCols() + col]);
+        }
+    }
 
     while (window.ProcessMessages()) {
         game_loop.Tick();
@@ -48,7 +76,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
         renderer.BeginFrame(0.1f, 0.1f, 0.2f);
         sprite_batch.Begin();
-            sprite_batch.Draw(pos_x, pos_y, 64, 64, my_texture, 1.0f, 1.0f, 1.0f, 1.0f);
+            // sprite_batch.Draw(3*32, 12*32, 32, 32, my_texture, 1.0f, 1.0f, 1.0f, 1.0f);
+            for (int row = 0; row < tilemap.GetRows(); ++row) {
+                for (int col = 0; col < tilemap.GetCols(); ++col) {
+                    const auto& tile = tilemap.GetTile(col, row);
+                    int t_size = tilemap.GetTileSize();
+                    int pixel_x = col * t_size;
+                    int pixel_y = row * t_size;
+                    
+                    if (tile.type != TileType::Empty) {
+                        sprite_batch.Draw(pixel_x, pixel_y, (float)t_size, (float)t_size, my_texture, 1.0f, 1.0f, 1.0f, 1.0f);
+                    }
+                    if (tile.type == TileType::Brick) {
+                        sprite_batch.Draw(pixel_x, pixel_y, (float)t_size, (float)t_size, my_texture, 100.0f, 50.0f, 1.0f, 1.0f);
+                    }
+                }
+            }
         sprite_batch.End();
         renderer.EndFrame();
     }
