@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <string>
 
 // Tile type — mở rộng dần khi cần
 enum class TileType : uint8_t {
@@ -30,6 +31,9 @@ public:
     int GetCols()     const { return _cols; }
     int GetRows()     const { return _rows; }
     int GetTileSize() const { return _tile_size; }
+
+    // Load map
+    bool LoadFromFile(const std::string& path);
 
 private:
     int _cols, _rows, _tile_size;
