@@ -24,6 +24,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     constexpr float JUMP_SPEED  = 800.0f;  // px/s
     constexpr float GRAVITY     = 1200.0f;  // px/s²
     constexpr float DT          = static_cast<float>(GameLoop::FIXED_DT);
+    constexpr float PLAYER_W    = 64.0f;
+    constexpr float PLAYER_H    = 64.0f;
 
     Tilemap tilemap(0, 0, 0);
     tilemap.LoadFromFile("assets/level1.txt");
@@ -36,15 +38,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             vel_x = 0.0f;
             if (input.IsHeld(Action::MoveLeft))  vel_x = -SPEED;
             if (input.IsHeld(Action::MoveRight)) vel_x =  SPEED;
-            if (input.IsPressed(Action::Jump) && pos_y >= GROUND_Y)
+            
+            bool on_ground = (vel_y == 0.0f);
+            if (input.IsPressed(Action::Jump) && on_ground)
                 vel_y = -JUMP_SPEED;    
 
             vel_y += GRAVITY * DT;
             pos_x += vel_x * DT;
             pos_y += vel_y * DT;
-            if (pos_y >= GROUND_Y) {  // chạm đất
-                pos_y = GROUND_Y;
-                vel_y = 0.0f;
+            
+            if (vel_y > 0.0f) {
+                float foot_y  = pos_y + PLAYER_H;
+                int   tile_row = tilemap.PixelToRow(foot_y);
+                int   col_left  = tilemap.PixelToCol(pos_x + 1.0f);          // sát cạnh trái
+                int   col_right = tilemap.PixelToCol(pos_x + PLAYER_W - 1.0f); // sát cạnh phải
+                // TODO: check tilemap.GetTile(col_left, tile_row) và col_right
+                // TODO: nếu solid → snap pos_y, vel_y = 0
+                // HINT: cần guard tile_row < tilemap.GetRows() để tránh out-of-bounds!
+         
+                if (tilemap.IsSolid(col_left, tile_row) || tilemap.IsSolid(col_right, tile_row)) {
+                    pos_y = tile_row * tilemap.GetTileSize() - PLAYER_H;
+                    vel_y = 0.0f;
+                }
             }
             
             game_loop.ConsumeUpdate();
@@ -52,7 +67,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
         renderer.BeginFrame(0.1f, 0.1f, 0.2f);
         sprite_batch.Begin();
-            // sprite_batch.Draw(3*32, 12*32, 32, 32, my_texture, 1.0f, 1.0f, 1.0f, 1.0f);
+            sprite_batch.Draw(pos_x, pos_y, PLAYER_W, PLAYER_H, my_texture, 1.0f, 1.0f, 1.0f, 1.0f);
             for (int row = 0; row < tilemap.GetRows(); ++row) {
                 for (int col = 0; col < tilemap.GetCols(); ++col) {
                     const auto& tile = tilemap.GetTile(col, row);

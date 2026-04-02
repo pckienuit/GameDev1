@@ -41,3 +41,8 @@ bool Tilemap::LoadFromFile(const std::string& path) {
 
     return true;
 }
+
+bool Tilemap::IsSolid(int col, int row) const {
+    if (col < 0 || col >= _cols || row < 0 || row >= _rows) return false;
+    return _tiles[row*_cols + col].type == TileType::Ground || _tiles[row*_cols + col].type == TileType::Brick;
+}

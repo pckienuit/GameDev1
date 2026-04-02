@@ -35,6 +35,7 @@ public:
     // Load map
     bool LoadFromFile(const std::string& path);
 
+    bool IsSolid(int col, int row) const;
 private:
     int _cols, _rows, _tile_size;
     std::vector<Tile> _tiles; // TODO: tại sao dùng 1D vector thay vì 2D?
