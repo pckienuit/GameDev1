@@ -143,6 +143,7 @@
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\SpriteBatch.cpp" />
     <ClCompile Include="src\renderer\Texture.cpp" />
+    <ClCompile Include="src\renderer\TextureRegistry.cpp" />
     <ClCompile Include="src\tilemap\Tilemap.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +156,7 @@
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\SpriteBatch.h" />
     <ClInclude Include="src\renderer\Texture.h" />
+    <ClInclude Include="src\renderer\TextureRegistry.h" />
     <ClInclude Include="src\tilemap\Tilemap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
