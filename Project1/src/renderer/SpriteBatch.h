@@ -2,6 +2,7 @@
 #include <vector>
 #include <d3d11.h>
 #include <wrl/client.h>
+#include "Sprite.h"
 #include "Texture.h"
 
 template<typename T>
@@ -15,17 +16,15 @@ struct SpriteVertex {
 
 class SpriteBatch {
 public:
-    // TODO: constructor nhận device + context, tạo buffer với MAX_SPRITES capacity
     explicit SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    void Begin();  // TODO: clear _vertices
+    void Begin();
 
     void Draw(float x, float y, float w, float h,
-              const Texture& tex,
+              const Sprite& sprite,
               float r, float g, float b, float a);
-    // TODO: push 4 vertices (hoặc 6 nếu dùng index buffer) vào _vertices
 
-    void End();    // TODO: upload _vertices → GPU → Draw
+    void End();  
 
 private:
     static constexpr int MAX_SPRITES = 1024;

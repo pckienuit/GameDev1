@@ -42,7 +42,7 @@ void SpriteBatch::Begin() {
 }
 
 void SpriteBatch::Draw(float x, float y, float w, float h,
-                       const Texture& tex,
+                       const Sprite& sprite,
                        float r, float g, float b, float a) {
  
     if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE) {
@@ -50,17 +50,22 @@ void SpriteBatch::Draw(float x, float y, float w, float h,
         Begin();
     }
     
-    _current_srv = tex.GetSRV();
+    _current_srv = sprite.texture->GetSRV();
+
+    float u0 = (float)sprite.src_x / sprite.texture->GetWidth();
+    float v0 = (float)sprite.src_y / sprite.texture->GetHeight();
+    float u1 = (float)(sprite.src_x + sprite.src_w) / sprite.texture->GetWidth();
+    float v1 = (float)(sprite.src_y + sprite.src_h) / sprite.texture->GetHeight();
 
     //Tria1
-    _vertices.push_back({x, y, 0.0f, 0.0f, r, g, b, a}); //TL
-    _vertices.push_back({x + w, y, 1.0f, 0.0f, r, g, b, a}); //TR
-    _vertices.push_back({x, y + h, 0.0f, 1.0f, r, g, b, a}); //BL
+    _vertices.push_back({x, y, u0, v0, r, g, b, a}); //TL
+    _vertices.push_back({x + w, y, u1, v0, r, g, b, a}); //TR
+    _vertices.push_back({x, y + h, u0, v1, r, g, b, a}); //BL
 
     //Tria2
-    _vertices.push_back({x, y + h, 0.0f, 1.0f, r, g, b, a}); //BL
-    _vertices.push_back({x + w, y + h, 1.0f, 1.0f, r, g, b, a}); //BR
-    _vertices.push_back({x + w, y, 1.0f, 0.0f, r, g, b, a}); //TR
+    _vertices.push_back({x, y + h, u0, v1, r, g, b, a}); //BL
+    _vertices.push_back({x + w, y + h, u1, v1, r, g, b, a}); //BR
+    _vertices.push_back({x + w, y, u1, v0, r, g, b, a}); //TR
 }
 
 void SpriteBatch::End() {
