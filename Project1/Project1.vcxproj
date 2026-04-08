@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\Input.cpp" />
+    <ClCompile Include="src\game\Player.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\Input.h" />
     <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\game\Player.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\SpriteBatch.h" />
     <ClInclude Include="src\renderer\Texture.h" />
