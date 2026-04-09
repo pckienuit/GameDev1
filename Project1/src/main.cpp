@@ -49,9 +49,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                     if (tile.type != TileType::Empty) {
                         sprite_batch.Draw(pixel_x, pixel_y, (float)t_size, (float)t_size, brick_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
                     }
-                    if (tile.type == TileType::Brick) {
-                        sprite_batch.Draw(pixel_x, pixel_y, (float)t_size, (float)t_size, brick_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
-                    }
                 }
             }
         sprite_batch.End();
