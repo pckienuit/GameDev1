@@ -12,3 +12,10 @@ struct Sprite {
 
     Sprite(const Texture* tex, int x, int y, int w, int h);
 };
+
+struct AnimFrame {
+    int   src_x, src_y;
+    int   src_w, src_h;
+    float duration;   // seconds
+};
+
