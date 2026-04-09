@@ -14,11 +14,18 @@ struct SpriteVertex {
     float r, g, b, a; // color
 };
 
+struct ScreenData {
+    float screen_width;
+    float screen_height;
+    float cam_x;
+    float cam_y;
+};
+
 class SpriteBatch {
 public:
     explicit SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context);
 
-    void Begin();
+    void Begin(float screen_w, float screen_h, float cam_x=0.0f, float cam_y=0.0f);
 
     void Draw(float x, float y, float w, float h,
               const Sprite& sprite,
@@ -28,6 +35,12 @@ public:
 
 private:
     static constexpr int MAX_SPRITES = 1024;
+
+    float _screen_w = 800.0f;
+    float _screen_h = 600.0f;
+    float _cam_x    = 0.0f;
+    float _cam_y    = 0.0f;
+
 
     ID3D11DeviceContext* _context;
     ComPtr<ID3D11Buffer> _vertex_buffer; // pre-allocated, D3D11_USAGE_DYNAMIC
@@ -42,6 +55,10 @@ private:
     //texture
     ComPtr<ID3D11SamplerState>  _sampler;
     ID3D11ShaderResourceView*   _current_srv = nullptr;
+
+    //constant buffer
+    ComPtr<ID3D11Buffer>        _const_buffer;
+    ID3D11Device*               _device;
     
     void compile_shaders(ID3D11Device* device);
 };

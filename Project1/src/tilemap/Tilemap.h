@@ -32,6 +32,9 @@ public:
     int GetRows()     const { return _rows; }
     int GetTileSize() const { return _tile_size; }
 
+    float GetWidth()  const { return (float)_cols * _tile_size; }
+    float GetHeight() const { return (float)_rows * _tile_size; }
+
     // Load map
     bool LoadFromFile(const std::string& path);
 

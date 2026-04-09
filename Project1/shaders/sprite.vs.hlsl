@@ -17,14 +17,19 @@ struct VSOutput {
 cbuffer ScreenBuffer : register(b0) {
     float screen_width;
     float screen_height;
+    float cam_x;
+    float cam_y;
 };
 
 VSOutput main(VSInput input) {
     VSOutput output;
     
-    // Convert pixel coords → clip space
-    float cx = (input.position.x / screen_width)  * 2.0f - 1.0f;
-    float cy = (input.position.y / screen_height) * (-2.0f) + 1.0f;
+    float world_x = input.position.x - cam_x;
+    float world_y = input.position.y - cam_y;
+
+    // Convert pixel coords -> clip space
+    float cx = (world_x / screen_width)  * 2.0f - 1.0f;
+    float cy = (world_y / screen_height) * (-2.0f) + 1.0f;
     
     output.position = float4(cx, cy, 0.0f, 1.0f);
     output.color    = input.color;

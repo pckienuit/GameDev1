@@ -142,6 +142,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\renderer\Animation.cpp" />
+    <ClCompile Include="src\renderer\Camera.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\Sprite.cpp" />
     <ClCompile Include="src\renderer\SpriteBatch.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="src\ecs\EntityManager.h" />
     <ClInclude Include="src\game\Player.h" />
     <ClInclude Include="src\renderer\Animation.h" />
+    <ClInclude Include="src\renderer\Camera.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\Sprite.h" />
     <ClInclude Include="src\renderer\SpriteBatch.h" />

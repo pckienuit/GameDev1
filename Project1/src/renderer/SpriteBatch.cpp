@@ -9,6 +9,7 @@ static constexpr int NUM_VERTICES_PER_SPRITE = 6;
 
 SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
     _context = context;
+    _device  = device;
 
     D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DYNAMIC;
@@ -26,10 +27,22 @@ SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
     sd.AddressU              = D3D11_TEXTURE_ADDRESS_CLAMP;
     sd.AddressV              = D3D11_TEXTURE_ADDRESS_CLAMP;
     sd.AddressW              = D3D11_TEXTURE_ADDRESS_CLAMP;
+
     
     hr = device->CreateSamplerState(&sd, &_sampler);
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create sampler state");
+    }
+    
+    D3D11_BUFFER_DESC cbd = {};
+    cbd.Usage                = D3D11_USAGE_DYNAMIC;
+    cbd.ByteWidth            = sizeof(ScreenData);
+    cbd.BindFlags            = D3D11_BIND_CONSTANT_BUFFER;
+    cbd.CPUAccessFlags       = D3D11_CPU_ACCESS_WRITE;
+    
+    hr = device->CreateBuffer(&cbd, nullptr, &_const_buffer);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to create constant buffer");
     }
 
     _vertices.reserve(MAX_SPRITES * NUM_VERTICES_PER_SPRITE);
@@ -37,8 +50,19 @@ SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
     compile_shaders(device);
 }
 
-void SpriteBatch::Begin() {
+void SpriteBatch::Begin(float screen_w, float screen_h, float cam_x, float cam_y) {
     _vertices.clear();
+
+    ScreenData data = { screen_w, screen_h, cam_x, cam_y };
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    HRESULT hr = _context->Map(_const_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    if (FAILED(hr)) {
+        throw std::runtime_error("Failed to map constant buffer");
+    }
+    memcpy(mapped.pData, &data, sizeof(data));
+    _context->Unmap(_const_buffer.Get(), 0);
+    _context->VSSetConstantBuffers(0, 1, _const_buffer.GetAddressOf());
 }
 
 void SpriteBatch::Draw(float x, float y, float w, float h,
@@ -47,7 +71,7 @@ void SpriteBatch::Draw(float x, float y, float w, float h,
  
     if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE) {
         End();
-        Begin();
+        Begin(_screen_w, _screen_h, _cam_x, _cam_y);
     }
     
     _current_srv = sprite.texture->GetSRV();

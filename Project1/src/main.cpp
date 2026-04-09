@@ -8,6 +8,7 @@
 #include "game/Player.h"
 #include "renderer/TextureRegistry.h"
 #include "renderer/Sprite.h"
+#include "renderer/Camera.h"
 #include <iostream>
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -22,6 +23,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
 
     Player player(200.0f, 100.0f);
+    Camera camera(800.0f, 600.0f);
+
     Tilemap tilemap(0, 0, 0);
     tilemap.LoadFromFile("assets/level1.txt");
 
@@ -33,11 +36,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         while (game_loop.ShouldUpdate()) {
             input.Poll();
             player.Update(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump), tilemap);
+            camera.Follow(player.GetX(), player.GetY(), DT);
+            camera.Clamp(tilemap.GetWidth(), tilemap.GetHeight());
             game_loop.ConsumeUpdate();
         }
 
         renderer.BeginFrame(0.1f, 0.1f, 0.2f);
-        sprite_batch.Begin();
+        sprite_batch.Begin(800.0f, 600.0f, camera.GetX(), camera.GetY());
             sprite_batch.Draw(player.GetX(), player.GetY(), player.GetW(), player.GetH(), player_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
             for (int row = 0; row < tilemap.GetRows(); ++row) {
                 for (int col = 0; col < tilemap.GetCols(); ++col) {
