@@ -1,17 +1,18 @@
 #include "Input.h"
 
-static int action_to_vk(Action action) {
-    switch (action) {
-        case Action::MoveLeft:  return VK_LEFT;
-        case Action::MoveRight: return VK_RIGHT;
-        case Action::Jump:      return VK_SPACE;
-        default:                return 0;
-    }
+
+Input::Input() {
+    _bindings[Action::MoveLeft]  = { VK_LEFT,  'A' };
+    _bindings[Action::MoveRight] = { VK_RIGHT, 'D' };
+    _bindings[Action::Jump]      = { VK_SPACE, 'W', VK_UP };
 }
 
-bool Input::_sample(Action action) {
-    //Read high bit from OS
-    return (GetAsyncKeyState(action_to_vk(action)) & 0x8000) != 0;
+
+bool Input::_sample(Action action) const {
+    for (int vk : _bindings.at(action)) {
+        if (GetAsyncKeyState(vk) & 0x8000) return true;
+    }
+    return false;
 }
 
 void Input::Poll() {
