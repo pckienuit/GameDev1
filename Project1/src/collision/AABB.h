@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 
 struct AABB {
     float x, y;   // top-left corner (pixels)

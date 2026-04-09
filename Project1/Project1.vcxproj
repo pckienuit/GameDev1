@@ -134,6 +134,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\Input.cpp" />
     <ClCompile Include="src\ecs\EntityManager.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="src\tilemap\Tilemap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\collision\AABB.h" />
     <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\Input.h" />
     <ClInclude Include="src\core\Window.h" />

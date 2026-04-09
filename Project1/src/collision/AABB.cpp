@@ -11,8 +11,8 @@ bool AABB::Overlaps(const AABB& a, const AABB& b) {
 bool AABB::Resolve(const AABB& a, const AABB& b, float& out_dx, float& out_dy) {
     if (!Overlaps(a, b)) { return false; }
     
-    float overlap_x = min(a.Right()-b.x, b.Right()-a.x);
-    float overlap_y = min(a.Bottom()-b.y, b.Bottom()-a.y);
+    float overlap_x = std::min(a.Right()-b.x, b.Right()-a.x);
+    float overlap_y = std::min(a.Bottom()-b.y, b.Bottom()-a.y);
 
     if (overlap_x < overlap_y) {
         out_dx = (a.x < b.x) ? -overlap_x : overlap_x;

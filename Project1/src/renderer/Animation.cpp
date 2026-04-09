@@ -40,4 +40,4 @@ const Sprite& Animation::Update(float dt) {
 void Animation::Reset() {
     _current_idx = 0;
     _timer = 0.0f;
-}
+}   
