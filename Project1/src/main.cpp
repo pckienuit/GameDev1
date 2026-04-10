@@ -45,6 +45,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             collision_system.Register(player.GetID(), player.GetAABB());
             collision_system.Detect();
             camera.Follow(player.GetX(), player.GetY(), DT);
+            //char buf[128];
+            //sprintf_s(buf, "cam=%.0f player=%.0f\n",
+            //    camera.GetX(), player.GetX());
+            //OutputDebugStringA(buf);
             camera.Clamp(tilemap.GetWidth(), tilemap.GetHeight());
             game_loop.ConsumeUpdate();
         }

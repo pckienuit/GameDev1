@@ -68,6 +68,12 @@ SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
 void SpriteBatch::Begin(float screen_w, float screen_h, float cam_x, float cam_y) {
     _vertices.clear();
 
+    // Cache values so internal flushes (texture change) use correct camera offset
+    _screen_w = screen_w;
+    _screen_h = screen_h;
+    _cam_x    = cam_x;
+    _cam_y    = cam_y;
+
     ScreenData data = { screen_w, screen_h, cam_x, cam_y };
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
