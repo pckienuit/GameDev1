@@ -8,18 +8,23 @@ bool AABB::Overlaps(const AABB& a, const AABB& b) {
     return true;
 }
 
-bool AABB::Resolve(const AABB& a, const AABB& b, float& out_dx, float& out_dy) {
+bool AABB::GetHitInfo(const AABB& a, const AABB& b, HitInfo& out) {
     if (!Overlaps(a, b)) { return false; }
-    
-    float overlap_x = std::min(a.Right()-b.x, b.Right()-a.x);
-    float overlap_y = std::min(a.Bottom()-b.y, b.Bottom()-a.y);
+
+    // Minimum penetration depth on each axis
+    float overlap_x = std::min(a.Right() - b.x, b.Right() - a.x);
+    float overlap_y = std::min(a.Bottom() - b.y, b.Bottom() - a.y);
 
     if (overlap_x < overlap_y) {
-        out_dx = (a.x < b.x) ? -overlap_x : overlap_x;
-        out_dy = 0.0f;
+        // Push along X axis
+        out.normal_x = (a.x < b.x) ? -1.0f : 1.0f;
+        out.normal_y = 0.0f;
+        out.depth    = overlap_x;
     } else {
-        out_dy = (a.y < b.y) ? -overlap_y : overlap_y;
-        out_dx = 0.0f;
+        // Push along Y axis
+        out.normal_x = 0.0f;
+        out.normal_y = (a.y < b.y) ? -1.0f : 1.0f;
+        out.depth    = overlap_y;
     }
 
     return true;

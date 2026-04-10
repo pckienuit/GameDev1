@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="src\collision\AABB.cpp" />
     <ClCompile Include="src\collision\CollisionEvent.cpp" />
+    <ClCompile Include="src\collision\CollisionSystem.cpp" />
     <ClCompile Include="src\collision\SpatialGrid.cpp" />
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\Input.cpp" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="src\collision\AABB.h" />
     <ClInclude Include="src\collision\CollisionEvent.h" />
+    <ClInclude Include="src\collision\CollisionSystem.h" />
     <ClInclude Include="src\collision\SpatialGrid.h" />
     <ClInclude Include="src\core\GameLoop.h" />
     <ClInclude Include="src\core\Input.h" />
