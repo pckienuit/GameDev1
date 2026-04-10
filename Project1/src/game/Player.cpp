@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player(float start_x, float start_y, const Texture* texture):
+Player::Player(float start_x, float start_y, const Texture* texture, EntityManager& entity_manager):
     _pos_x(start_x),
     _pos_y(start_y),
     _vel_x(0.0f),
@@ -9,7 +9,8 @@ Player::Player(float start_x, float start_y, const Texture* texture):
     _anim_idle(texture),
     _anim_walk(texture),
     _anim_jump(texture),
-    _facing_left(false)
+    _facing_left(false),
+    _id(entity_manager.Create())
 {
     // Sprite sheet: 256x64, 4 frames each 64x64
     _anim_idle.AddFrame(245, 154, 16, 26, 0.4f);   // Idle

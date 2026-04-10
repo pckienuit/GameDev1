@@ -9,6 +9,7 @@
 #include "renderer/TextureRegistry.h"
 #include "renderer/Sprite.h"
 #include "renderer/Camera.h"
+#include "collision/CollisionSystem.h"
 #include <iostream>
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -23,12 +24,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
 
-    Player player(200.0f, 100.0f, &mario_texture);
-    Camera camera(800.0f, 600.0f);
+    EntityManager entity_manager;
 
+    Player player(200.0f, 100.0f, &mario_texture, entity_manager);
+    Camera camera(800.0f, 600.0f);
+    
     Tilemap tilemap(0, 0, 0);
     tilemap.LoadFromFile("assets/level1.txt");
-
+    
+    CollisionSystem collision_system(static_cast<int>(tilemap.GetWidth()), static_cast<int>(tilemap.GetHeight()), 32, 1024);
     // Sprite  player_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
     Sprite  brick_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
 
@@ -37,6 +41,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         while (game_loop.ShouldUpdate()) {
             input.Poll();
             player.Update(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump), tilemap);
+            collision_system.BeginFrame();
+            collision_system.Register(player.GetID(), player.GetAABB());
+            collision_system.Detect();
             camera.Follow(player.GetX(), player.GetY(), DT);
             camera.Clamp(tilemap.GetWidth(), tilemap.GetHeight());
             game_loop.ConsumeUpdate();

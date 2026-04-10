@@ -1,11 +1,13 @@
 #pragma once
 #include "../tilemap/Tilemap.h"
 #include "../renderer/Animation.h"
+#include "../collision/AABB.h"
+#include "../ecs/EntityManager.h"
 #include <cmath>
 
 class Player {
 public:
-    Player(float start_x, float start_y, const Texture* texture);
+    Player(float start_x, float start_y, const Texture* texture, EntityManager& entity_manager);
 
     void Update(float dt, bool move_left, bool move_right, 
                 bool jump_pressed, const Tilemap& tilemap);
@@ -15,12 +17,20 @@ public:
 	float GetW()      const { return PLAYER_W ; }
 	float GetH()      const { return PLAYER_H; }
 
+    AABB GetAABB() const {
+        return AABB{_pos_x, _pos_y, PLAYER_W, PLAYER_H};
+    }
+
+    EntityID GetID() const { return _id; }
+
     bool  IsGrounded() const { return _is_grounded; }
 
     const Sprite& GetSprite(float dt);
     bool          IsFacingLeft() const; 
 
 private:
+    EntityID _id;
+
     float _pos_x, _pos_y;
     float _vel_x, _vel_y;
     bool  _is_grounded = false;
