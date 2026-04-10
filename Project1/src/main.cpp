@@ -17,18 +17,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     Renderer    renderer(window);
     SpriteBatch sprite_batch(renderer.GetDevice(), renderer.GetContext());
     Texture     my_texture(renderer.GetDevice(), "assets/brick.png");
+    Texture     mario_texture(renderer.GetDevice(), "assets/mario.png");
     GameLoop    game_loop;
     Input       input;
 
     static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
 
-    Player player(200.0f, 100.0f);
+    Player player(200.0f, 100.0f, &mario_texture);
     Camera camera(800.0f, 600.0f);
 
     Tilemap tilemap(0, 0, 0);
     tilemap.LoadFromFile("assets/level1.txt");
 
-    Sprite  player_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
+    // Sprite  player_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
     Sprite  brick_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
 
     while (window.ProcessMessages()) {
@@ -43,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
         renderer.BeginFrame(0.1f, 0.1f, 0.2f);
         sprite_batch.Begin(800.0f, 600.0f, camera.GetX(), camera.GetY());
-            sprite_batch.Draw(player.GetX(), player.GetY(), player.GetW(), player.GetH(), player_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
+            sprite_batch.Draw(player.GetX(), player.GetY(), player.GetW(), player.GetH(), player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, player.IsFacingLeft());
             for (int row = 0; row < tilemap.GetRows(); ++row) {
                 for (int col = 0; col < tilemap.GetCols(); ++col) {
                     const auto& tile = tilemap.GetTile(col, row);

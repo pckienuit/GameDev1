@@ -29,7 +29,8 @@ public:
 
     void Draw(float x, float y, float w, float h,
               const Sprite& sprite,
-              float r, float g, float b, float a);
+              float r, float g, float b, float a,
+              bool flip_x = false);
 
     void End();  
 
@@ -59,6 +60,9 @@ private:
     //constant buffer
     ComPtr<ID3D11Buffer>        _const_buffer;
     ID3D11Device*               _device;
+
+    //blend state
+    ComPtr<ID3D11BlendState>    _blend_state;
     
     void compile_shaders(ID3D11Device* device);
 };

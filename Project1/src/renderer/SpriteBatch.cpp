@@ -11,13 +11,28 @@ SpriteBatch::SpriteBatch(ID3D11Device* device, ID3D11DeviceContext* context) {
     _context = context;
     _device  = device;
 
+    // Blend state
+    D3D11_BLEND_DESC blend_desc = {};
+    blend_desc.RenderTarget[0].BlendEnable           = TRUE;
+    blend_desc.RenderTarget[0].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
+    blend_desc.RenderTarget[0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].BlendOp               = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+    blend_desc.RenderTarget[0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    HRESULT hr = device->CreateBlendState(&blend_desc, &_blend_state);
+    if (FAILED(hr)) throw std::runtime_error("Failed to create blend state");
+
+
     D3D11_BUFFER_DESC bd = {};
     bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.ByteWidth      = sizeof(SpriteVertex) * MAX_SPRITES * NUM_VERTICES_PER_SPRITE;
     bd.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    HRESULT hr = device->CreateBuffer(&bd, nullptr, &_vertex_buffer);
+    hr = device->CreateBuffer(&bd, nullptr, &_vertex_buffer);
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create vertex buffer");
     }
@@ -60,26 +75,40 @@ void SpriteBatch::Begin(float screen_w, float screen_h, float cam_x, float cam_y
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to map constant buffer");
     }
+
+    // Update constant buffer
     memcpy(mapped.pData, &data, sizeof(data));
     _context->Unmap(_const_buffer.Get(), 0);
     _context->VSSetConstantBuffers(0, 1, _const_buffer.GetAddressOf());
+
+    // Set blend state
+    float blend_factor[4] = {1,1,1,1};
+    _context->OMSetBlendState(_blend_state.Get(), blend_factor, 0xFFFFFFFF);
 }
 
 void SpriteBatch::Draw(float x, float y, float w, float h,
                        const Sprite& sprite,
-                       float r, float g, float b, float a) {
+                       float r, float g, float b, float a,
+                       bool flip_x) {
  
-    if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE) {
+    bool texture_changed = (_current_srv != nullptr && 
+                            _current_srv != sprite.texture->GetSRV());
+    if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE
+        || texture_changed) {
         End();
         Begin(_screen_w, _screen_h, _cam_x, _cam_y);
     }
-    
     _current_srv = sprite.texture->GetSRV();
-
+    
     float u0 = (float)sprite.src_x / sprite.texture->GetWidth();
     float v0 = (float)sprite.src_y / sprite.texture->GetHeight();
     float u1 = (float)(sprite.src_x + sprite.src_w) / sprite.texture->GetWidth();
     float v1 = (float)(sprite.src_y + sprite.src_h) / sprite.texture->GetHeight();
+
+    //Flip sprite
+    if (flip_x) {
+        std::swap(u0, u1);
+    }
 
     //Tria1
     _vertices.push_back({x, y, u0, v0, r, g, b, a}); //TL

@@ -1,12 +1,12 @@
 #pragma once
 #include "../tilemap/Tilemap.h"
+#include "../renderer/Animation.h"
+#include <cmath>
 
 class Player {
 public:
-    Player(float start_x, float start_y);
+    Player(float start_x, float start_y, const Texture* texture);
 
-    // TODO: nhận input từ ngoài vào (IsHeld, IsPressed)
-    // Tại sao không cho Player tự gọi Input bên trong?
     void Update(float dt, bool move_left, bool move_right, 
                 bool jump_pressed, const Tilemap& tilemap);
 
@@ -17,6 +17,9 @@ public:
 
     bool  IsGrounded() const { return _is_grounded; }
 
+    const Sprite& GetSprite(float dt);
+    bool          IsFacingLeft() const; 
+
 private:
     float _pos_x, _pos_y;
     float _vel_x, _vel_y;
@@ -25,7 +28,12 @@ private:
     static constexpr float SPEED       = 200.0f;  // px/s
     static constexpr float JUMP_SPEED  = 800.0f;  // px/s
     static constexpr float GRAVITY     = 1200.0f;  // px/s²
-    static constexpr float PLAYER_W    = 64.0f;
-    static constexpr float PLAYER_H    = 64.0f;
+    static constexpr float PLAYER_W    = 48.0f;
+    static constexpr float PLAYER_H    = 96.0f;
     static constexpr float P_DISTANCE  = 1.0f;
+
+    Animation _anim_idle;
+    Animation _anim_walk;
+    Animation _anim_jump;
+    bool _facing_left = false;
 };
