@@ -14,32 +14,30 @@ void CollisionSystem::BeginFrame() {
     _entities.clear();
 }
 
-void CollisionSystem::Register(EntityID id, const AABB& box) {
+void CollisionSystem::Register(EntityID id, const AABB& box, float vel_x, float vel_y) {
     _grid.Insert(id, box.x, box.y, box.w, box.h);
-    _entities[id] = box;
+    _entities[id] = {id, box, vel_x, vel_y};
 }
 
 void CollisionSystem::Detect() {
-    std::vector<EntityID> candidates;    // reuse buffer — no alloc per entity
-
-    for (auto const& [id, box] : _entities) {
+    std::vector<EntityID> candidates;
+    for (auto const& [id, entry] : _entities) {
         candidates.clear();
-        _grid.Query(box.x, box.y, box.w, box.h, candidates);
-
+        _grid.Query(entry.box.x, entry.box.y, entry.box.w, entry.box.h, candidates);
         for (EntityID other_id : candidates) {
-            if (other_id <= id) continue;  // avoid duplicate pairs (A,B) and (B,A)
+            if (other_id <= id) continue;
 
-            const AABB& other_box = _entities[other_id];
+            const auto& other = _entities[other_id];
 
-            AABB::HitInfo hit;
-            if (AABB::GetHitInfo(box, other_box, hit)) {
+            AABB::SweptResult result = AABB::Swept(entry.box, entry.vel_x, entry.vel_y, other.box);
+            if (result.hit_time < 1.0f) {
                 CollisionEvent* ev = _pool.Acquire();
                 if (ev) {
                     ev->entity_a = id;
                     ev->entity_b = other_id;
-                    ev->normal_x = hit.normal_x;
-                    ev->normal_y = hit.normal_y;
-                    ev->depth    = hit.depth;
+                    ev->normal_x = result.normal_x;
+                    ev->normal_y = result.normal_y;
+                    ev->hit_time = result.hit_time;
                 }
             }
         }

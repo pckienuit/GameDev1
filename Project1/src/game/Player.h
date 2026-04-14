@@ -33,6 +33,9 @@ public:
         _pos_y += dy;
     }
 
+    float GetVelX() const { return _vel_x; }
+    float GetVelY() const { return _vel_y; }
+
 private:
     EntityID _id;
 

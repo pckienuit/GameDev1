@@ -9,6 +9,8 @@
 struct CollidableEntry {
     EntityID id;
     AABB     box;
+    float    vel_x;
+    float    vel_y;
 };
 
 class CollisionSystem {
@@ -19,7 +21,7 @@ public:
     void BeginFrame();
 
     // Register entity vào hệ thống frame này
-    void Register(EntityID id, const AABB& box);
+    void Register(EntityID id, const AABB& box, float vel_x, float vel_y);
 
     // Chạy broadphase + narrowphase → fill event pool
     void Detect();
@@ -31,5 +33,5 @@ private:
     SpatialGrid        _grid;
     CollisionEventPool _pool;
 
-    std::unordered_map<EntityID, AABB> _entities;
+    std::unordered_map<EntityID, CollidableEntry> _entities;
 };

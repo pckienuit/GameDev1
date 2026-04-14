@@ -6,7 +6,7 @@ struct CollisionEvent {
     EntityID entity_a;
     EntityID entity_b;
     float    normal_x, normal_y;  // collision direction
-    float    depth;               // overlap depth
+    float    hit_time;              // overlap depth
 };
 class CollisionEventPool {
 public:

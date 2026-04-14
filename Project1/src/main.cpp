@@ -23,11 +23,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     Input       input;
 
     static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
+    static constexpr float PLAYER_PUSH_SCALE = 0.5f;
 
     EntityManager entity_manager;
 
     Player player(200.0f, 100.0f, &mario_texture, entity_manager);
     Camera camera(800.0f, 600.0f);
+
+    // [TEST] Dummy static entity — delete when enemies exist
+    EntityID dummy_id   = entity_manager.Create();
+    AABB     dummy_aabb = { 100.0f, 200.0f, 48.0f, 96.0f };  // overlaps player spawn
     
     Tilemap tilemap(0, 0, 0);
     tilemap.LoadFromFile("assets/level1.txt");
@@ -44,13 +49,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             input.Poll();
             player.Update(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump), tilemap);
             collision_system.BeginFrame();
-            collision_system.Register(player.GetID(), player.GetAABB());
+            collision_system.Register(player.GetID(), player.GetAABB(), player.GetVelX(), player.GetVelY());
+            collision_system.Register(dummy_id, dummy_aabb, 0.0f, 0.0f);  // static dummy
             collision_system.Detect();
             for (int i = 0; i < pool.Count(); ++i) {
                 const CollisionEvent& ev = pool.Get(i);
                 
-                float push_x = ev.normal_x * ev.depth * 0.5f;
-                float push_y = ev.normal_y * ev.depth * 0.5f;
+                float push_x = ev.normal_x * PLAYER_PUSH_SCALE;
+                float push_y = ev.normal_y * PLAYER_PUSH_SCALE;
                 
                 if (ev.entity_a == player.GetID()) {
                     player.ApplyPush(push_x, push_y);
@@ -70,6 +76,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
         renderer.BeginFrame(0.1f, 0.1f, 0.2f);
         sprite_batch.Begin(800.0f, 600.0f, camera.GetX(), camera.GetY());
+            // [TEST] Draw dummy in red tint
+            sprite_batch.Draw(dummy_aabb.x, dummy_aabb.y, dummy_aabb.w, dummy_aabb.h, brick_sprite, 1.0f, 0.2f, 0.2f, 1.0f);
             sprite_batch.Draw(player.GetX(), player.GetY(), player.GetW(), player.GetH(), player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, player.IsFacingLeft());
             for (int row = 0; row < tilemap.GetRows(); ++row) {
                 for (int col = 0; col < tilemap.GetCols(); ++col) {
