@@ -35,15 +35,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     CollisionSystem collision_system(static_cast<int>(tilemap.GetWidth()), static_cast<int>(tilemap.GetHeight()), 32, 1024);
     // Sprite  player_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
     Sprite  brick_sprite(&my_texture, 0, 0, my_texture.GetWidth(), my_texture.GetHeight());
-
+    const CollisionEventPool& pool = collision_system.GetEvents();
+    
     while (window.ProcessMessages()) {
         game_loop.Tick();
+        
         while (game_loop.ShouldUpdate()) {
             input.Poll();
             player.Update(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump), tilemap);
             collision_system.BeginFrame();
             collision_system.Register(player.GetID(), player.GetAABB());
             collision_system.Detect();
+            for (int i = 0; i < pool.Count(); ++i) {
+                const CollisionEvent& ev = pool.Get(i);
+                
+                float push_x = ev.normal_x * ev.depth * 0.5f;
+                float push_y = ev.normal_y * ev.depth * 0.5f;
+                
+                if (ev.entity_a == player.GetID()) {
+                    player.ApplyPush(push_x, push_y);
+                }
+                if (ev.entity_b == player.GetID()) {
+                    player.ApplyPush(-push_x, -push_y);
+                }
+            }
             camera.Follow(player.GetX(), player.GetY(), DT);
             //char buf[128];
             //sprintf_s(buf, "cam=%.0f player=%.0f\n",

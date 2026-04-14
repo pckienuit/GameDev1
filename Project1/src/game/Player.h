@@ -28,6 +28,11 @@ public:
     const Sprite& GetSprite(float dt);
     bool          IsFacingLeft() const; 
 
+    void ApplyPush(float dx, float dy) {
+        _pos_x += dx;
+        _pos_y += dy;
+    }
+
 private:
     EntityID _id;
 
