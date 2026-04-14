@@ -117,3 +117,95 @@ const  Sprite& Player::GetSprite(float dt) {
 bool Player::IsFacingLeft() const {
     return _facing_left;
 }
+
+void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed) {
+    _vel_x = 0.0f;
+    if (move_left) {
+        _vel_x = -SPEED;
+        _facing_left = true;
+    }
+    if (move_right) {
+        _vel_x = SPEED;
+        _facing_left = false;
+    }
+    _vel_y += GRAVITY * dt;
+
+    if (jump_pressed && _is_grounded) {
+        _vel_y = -JUMP_SPEED;
+    }
+}
+
+void Player::Move(float dt, const Tilemap& tilemap) {
+    _is_grounded = false;
+    // === MOVE & RESOLVE X ===
+    _pos_x += _vel_x * dt;
+
+    if (_vel_x > 0.0f) {
+        //Check player right edge
+        int col_right = tilemap.PixelToCol(_pos_x + PLAYER_W);
+        int row_top   = tilemap.PixelToRow(_pos_y + P_DISTANCE);
+        int row_mid   = tilemap.PixelToRow(_pos_y + PLAYER_H*0.5f);
+        int row_bot   = tilemap.PixelToRow(_pos_y + PLAYER_H - P_DISTANCE);
+
+        if (tilemap.IsSolid(col_right, row_top) || 
+            tilemap.IsSolid(col_right, row_bot)|| 
+            tilemap.IsSolid(col_right, row_mid)) {
+            _pos_x = col_right * tilemap.GetTileSize() - PLAYER_W;
+            _vel_x = 0;
+        }
+    }
+    else if (_vel_x < 0.0f) {
+        //Check player left edge
+        int col_left = tilemap.PixelToCol(_pos_x);
+        int row_top   = tilemap.PixelToRow(_pos_y + P_DISTANCE);
+        int row_mid   = tilemap.PixelToRow(_pos_y + PLAYER_H*0.5f);
+        int row_bot   = tilemap.PixelToRow(_pos_y + PLAYER_H - P_DISTANCE);
+
+        if (tilemap.IsSolid(col_left, row_top) || 
+            tilemap.IsSolid(col_left, row_bot)|| 
+            tilemap.IsSolid(col_left, row_mid)) {
+            _pos_x = (col_left + 1) * tilemap.GetTileSize();
+            _vel_x = 0;
+        }
+    }
+
+    // === MOVE & RESOLVE Y ===
+    _pos_y += _vel_y * dt;
+
+    if (_vel_y > 0.0f) {
+        // Check falling
+        int tile_row = tilemap.PixelToRow(_pos_y + PLAYER_H);
+        int col_left = tilemap.PixelToCol(_pos_x + P_DISTANCE);
+        int col_mid  = tilemap.PixelToCol(_pos_x + PLAYER_W*0.5);
+        int col_right = tilemap.PixelToCol(_pos_x + PLAYER_W - P_DISTANCE);
+
+        if (tilemap.IsSolid(col_left, tile_row) || 
+            tilemap.IsSolid(col_right, tile_row)||
+            tilemap.IsSolid(col_mid, tile_row)) {
+            _pos_y = tile_row * tilemap.GetTileSize() - PLAYER_H;
+            _vel_y = 0;
+            _is_grounded = true;
+        }
+    }
+    else if (_vel_y < 0.0f) {
+        // Check jumping
+        int tile_row = tilemap.PixelToRow(_pos_y);
+        int col_left = tilemap.PixelToCol(_pos_x + P_DISTANCE);
+        int col_mid  = tilemap.PixelToCol(_pos_x + PLAYER_W*0.5);
+        int col_right = tilemap.PixelToCol(_pos_x + PLAYER_W - P_DISTANCE);
+        if (tilemap.IsSolid(col_left, tile_row) || 
+            tilemap.IsSolid(col_right, tile_row)|| 
+            tilemap.IsSolid(col_mid, tile_row)) {
+            _pos_y = (tile_row+1) * tilemap.GetTileSize();
+            _vel_y = 0;
+        }
+    }
+}
+
+void Player::ClampVelocityAlongNormal(float normal_x, float normal_y, float hit_time) {
+    float dot = _vel_x * normal_x + _vel_y * normal_y;
+    if (dot < 0) {
+        _vel_x -= dot * normal_x;
+        _vel_y -= dot * normal_y;
+    }
+}

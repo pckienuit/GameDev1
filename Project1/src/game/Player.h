@@ -12,6 +12,10 @@ public:
     void Update(float dt, bool move_left, bool move_right, 
                 bool jump_pressed, const Tilemap& tilemap);
 
+    void PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed);
+    void Move(float dt, const Tilemap& tilemap);
+    void ClampVelocityAlongNormal(float normal_x, float normal_y, float hit_time);
+
     float GetX()      const { return _pos_x; }
     float GetY()      const { return _pos_y; }
 	float GetW()      const { return PLAYER_W ; }

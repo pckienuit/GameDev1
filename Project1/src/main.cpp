@@ -23,7 +23,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     Input       input;
 
     static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
-    static constexpr float PLAYER_PUSH_SCALE = 0.5f;
 
     EntityManager entity_manager;
 
@@ -47,7 +46,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         
         while (game_loop.ShouldUpdate()) {
             input.Poll();
-            player.Update(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump), tilemap);
+            player.PrepareVelocity(DT, input.IsHeld(Action::MoveLeft), input.IsHeld(Action::MoveRight), input.IsPressed(Action::Jump));
             collision_system.BeginFrame();
             collision_system.Register(player.GetID(), player.GetAABB(), player.GetVelX(), player.GetVelY());
             collision_system.Register(dummy_id, dummy_aabb, 0.0f, 0.0f);  // static dummy
@@ -55,16 +54,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
             for (int i = 0; i < pool.Count(); ++i) {
                 const CollisionEvent& ev = pool.Get(i);
                 
-                float push_x = ev.normal_x * PLAYER_PUSH_SCALE;
-                float push_y = ev.normal_y * PLAYER_PUSH_SCALE;
-                
                 if (ev.entity_a == player.GetID()) {
-                    player.ApplyPush(push_x, push_y);
+                    player.ClampVelocityAlongNormal(ev.normal_x, ev.normal_y, ev.hit_time);
                 }
                 if (ev.entity_b == player.GetID()) {
-                    player.ApplyPush(-push_x, -push_y);
+                    player.ClampVelocityAlongNormal(-ev.normal_x, -ev.normal_y, ev.hit_time);
                 }
             }
+            player.Move(DT, tilemap);
+
             camera.Follow(player.GetX(), player.GetY(), DT);
             //char buf[128];
             //sprintf_s(buf, "cam=%.0f player=%.0f\n",
