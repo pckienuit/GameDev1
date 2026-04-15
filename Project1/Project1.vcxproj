@@ -141,6 +141,7 @@
     <ClCompile Include="src\core\GameLoop.cpp" />
     <ClCompile Include="src\core\Input.cpp" />
     <ClCompile Include="src\ecs\EntityManager.cpp" />
+    <ClCompile Include="src\game\Game.cpp" />
     <ClCompile Include="src\game\Player.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\ecs\ComponentStore.h" />
     <ClInclude Include="src\ecs\EntityManager.h" />
+    <ClInclude Include="src\game\Game.h" />
     <ClInclude Include="src\game\Player.h" />
     <ClInclude Include="src\renderer\Animation.h" />
     <ClInclude Include="src\renderer\Camera.h" />

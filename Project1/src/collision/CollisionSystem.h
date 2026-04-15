@@ -4,8 +4,6 @@
 #include "AABB.h"
 #include <unordered_map>
 
-// Đơn giản nhất: mỗi entity có thể tham gia collision
-// cần cung cấp thông tin này
 struct CollidableEntry {
     EntityID id;
     AABB     box;
@@ -25,6 +23,10 @@ public:
 
     // Chạy broadphase + narrowphase → fill event pool
     void Detect();
+
+    void Resize(int world_w, int world_h, int cell_size) {
+        _grid.Resize(world_w, world_h, cell_size);
+    }
 
     // Đọc kết quả
     const CollisionEventPool& GetEvents() const { return _pool; }
