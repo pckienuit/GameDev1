@@ -13,10 +13,13 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _brick_sprite(&_brick_texture, 0, 0, _brick_texture.GetWidth(), _brick_texture.GetHeight()),
                 _mario_sprite(&_mario_texture, 0, 0, _mario_texture.GetWidth(), _mario_texture.GetHeight()),
                 _dummy_id(_entity_manager.Create()),
-                _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f })
+                _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f }),
+                _goomba_texture(_renderer.GetDevice(), "assets/enemies.png"),
+                _enemy_manager(&_goomba_texture, _entity_manager)
 {
     _tilemap.LoadFromFile("assets/level1.txt");
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()), static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
+    _enemy_manager.Spawn(EnemyType::Goomba, 500.0f, 100.0f);
 }
 
 bool Game::Update() {
@@ -28,10 +31,14 @@ bool Game::Update() {
     while (_game_loop.ShouldUpdate()) {
         _input.Poll();
         _player.PrepareVelocity(DT, _input.IsHeld(Action::MoveLeft), _input.IsHeld(Action::MoveRight), _input.IsPressed(Action::Jump));
+        _enemy_manager.Update(DT, _tilemap);
         _collision_system.BeginFrame();
         _collision_system.Register(_player.GetID(), _player.GetAABB(), _player.GetVelX(), _player.GetVelY());
         _collision_system.Register(_dummy_id, _dummy_aabb, 0.0f, 0.0f);  // static dummy
+        _enemy_manager.RegisterAll(_collision_system);
         _collision_system.Detect();
+        _enemy_manager.HandleCollisions(pool, _player.GetID());
+
         for (int i = 0; i < pool.Count(); ++i) {
             const CollisionEvent& ev = pool.Get(i);
             
@@ -60,6 +67,9 @@ void Game::Render() {
     _sprite_batch.Begin(800.0f, 600.0f, _camera.GetX(), _camera.GetY());
         _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h, _brick_sprite, 1.0f, 0.2f, 0.2f, 1.0f);
         _sprite_batch.Draw(_player.GetX(), _player.GetY(), _player.GetW(), _player.GetH(), _player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, _player.IsFacingLeft());
+
+        _enemy_manager.RenderAll(_sprite_batch, DT);
+        
         for (int row = 0; row < _tilemap.GetRows(); ++row) {
             for (int col = 0; col < _tilemap.GetCols(); ++col) {
                 const auto& tile = _tilemap.GetTile(col, row);

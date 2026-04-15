@@ -10,6 +10,7 @@
 #include "../tilemap/Tilemap.h"
 #include "../collision/CollisionSystem.h"
 #include "Player.h"
+#include "EnemyManager.h"
 
 class Game {
 public:
@@ -48,4 +49,7 @@ private:
     Sprite                _mario_sprite;
     EntityID              _dummy_id;
     AABB                  _dummy_aabb;
+
+    Texture               _goomba_texture;
+    EnemyManager          _enemy_manager;
 };

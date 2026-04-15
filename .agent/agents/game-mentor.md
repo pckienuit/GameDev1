@@ -95,10 +95,10 @@ WEEK 6 [60%] Tilemap + Camera                    ← IN PROGRESS
   - [~] Camera follow with deadzone                (follow OK, deadzone chưa)
   - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
-WEEK 7 [___] Audio + Enemy AI
+WEEK 7 [30%] Audio + Enemy AI                    ← IN PROGRESS
   - [ ] XAudio2 init + sound loading (.wav)
   - [ ] Sound manager (play, stop, volume)
-  - [ ] Goomba AI (patrol + die state)
+  - [x] Goomba AI (patrol + die state)            (EnemyManager.h/cpp, Enemy.h/cpp)
   - [ ] Koopa AI (patrol + shell state)
   - [ ] Enemy spawn/despawn based on camera
 

@@ -7,6 +7,8 @@ class Animation {
 public:
     explicit Animation(const Texture* texture);
 
+    Animation() : _texture(nullptr) {}
+
     void AddFrame(int src_x, int src_y, int src_w, int src_h, float duration);
     void SetLooping(bool loop);
 

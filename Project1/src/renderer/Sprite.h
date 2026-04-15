@@ -10,6 +10,8 @@ struct Sprite {
     int src_w = 0;
     int src_h = 0;
 
+    Sprite() = default;
+
     Sprite(const Texture* tex, int x, int y, int w, int h);
 };
 
