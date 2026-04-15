@@ -53,47 +53,47 @@ When the user asks for help implementing something:
 Track progress strictly. At the start of each session, remind the user where they are.
 
 ```
-WEEK 1 [___] D3D11 Foundation
-  - [ ] Win32 window creation
-  - [ ] D3D11 device + swap chain init
-  - [ ] HLSL vertex + pixel shader
-  - [ ] Render a colored quad on screen
-  - [ ] Load texture with stb_image → render sprite
-  - [ ] SpriteBatch class (batched drawing)
+WEEK 1 [95%] D3D11 Foundation                    ← DONE
+  - [x] Win32 window creation                     (Window.h/cpp)
+  - [x] D3D11 device + swap chain init            (Renderer.h/cpp)
+  - [x] HLSL vertex + pixel shader                (sprite.vs.hlsl, sprite.ps.hlsl)
+  - [x] Render a colored quad on screen            (via SpriteBatch)
+  - [x] Load texture with stb_image → render sprite (Texture.h/cpp)
+  - [x] SpriteBatch class (batched drawing)        (SpriteBatch.h/cpp)
 
-WEEK 2 [___] Core Engine Systems
-  - [ ] Fixed timestep game loop
-  - [ ] High-resolution timer
-  - [ ] Input system (WM_KEYDOWN/UP, no DirectInput)
-  - [ ] JustPressed / JustReleased / IsHeld
+WEEK 2 [100%] Core Engine Systems                 ← DONE
+  - [x] Fixed timestep game loop                   (GameLoop.h/cpp — 50Hz fixed step)
+  - [x] High-resolution timer                      (QueryPerformanceCounter in GameLoop)
+  - [x] Input system (WM_KEYDOWN/UP, no DirectInput) (Input.h/cpp)
+  - [x] JustPressed / JustReleased / IsHeld        (Action enum + IsHeld/IsPressed)
 
-WEEK 3 [___] ECS + Asset Pipeline
-  - [ ] EntityManager (create/destroy with ID reuse)
-  - [ ] ComponentStore<T> (dense array + map)
-  - [ ] Texture registry
-  - [ ] Sprite class (region of texture atlas)
-  - [ ] Animation system (frame sequence + timer)
+WEEK 3 [80%] ECS + Asset Pipeline                 ← IN PROGRESS
+  - [x] EntityManager (create/destroy with ID reuse) (EntityManager.h/cpp)
+  - [x] ComponentStore<T> (dense array + map)      (ComponentStore.h)
+  - [x] Texture registry                           (TextureRegistry.h/cpp)
+  - [x] Sprite class (region of texture atlas)     (Sprite.h/cpp)
+  - [~] Animation system (frame sequence + timer)  (Animation.h/cpp — basic, needs events/blending)
 
-WEEK 4 [___] Collision System
-  - [ ] AABB struct + intersection test
-  - [ ] Swept AABB algorithm
-  - [ ] Spatial Grid (broadphase)
-  - [ ] CollisionEvent with object pool (zero heap alloc)
-  - [ ] Collision resolution (blocking + trigger)
+WEEK 4 [100%] Collision System                    ← DONE
+  - [x] AABB struct + intersection test            (AABB.h/cpp)
+  - [x] Swept AABB algorithm                       (AABB.cpp — SweptAABB)
+  - [x] Spatial Grid (broadphase)                  (SpatialGrid.h/cpp)
+  - [x] CollisionEvent with object pool (zero heap alloc) (CollisionEvent.h/cpp)
+  - [x] Collision resolution (blocking + trigger)  (CollisionSystem.h/cpp)
 
-WEEK 5 [___] Mario Physics
-  - [ ] Gravity + acceleration model
-  - [ ] Walk / run / skid / air control
+WEEK 5 [60%] Mario Physics                       ← IN PROGRESS
+  - [x] Gravity + acceleration model               (Player.h — GRAVITY=1200)
+  - [~] Walk / run / skid / air control            (walk OK, run/skid/air control chưa)
   - [ ] Variable jump height (hold = higher)
   - [ ] Coyote time + jump buffering
-  - [ ] State machine (idle, walk, run, jump, fall, die)
+  - [~] State machine (idle, walk, run, jump, fall, die) (implicit via anims, chưa formal FSM)
 
-WEEK 6 [___] Tilemap + Camera
-  - [ ] Tile struct + TileLayer
-  - [ ] Load map from JSON/TMX (Tiled editor)
-  - [ ] Tile-based collision (solid, one-way)
-  - [ ] Camera follow with deadzone
-  - [ ] Camera clamping to world bounds
+WEEK 6 [60%] Tilemap + Camera                    ← IN PROGRESS
+  - [x] Tile struct + TileLayer                    (Tilemap.h/cpp)
+  - [x] Load map from file                         (LoadFromFile — .txt format, chưa JSON/TMX)
+  - [~] Tile-based collision (solid, one-way)      (solid OK, one-way chưa)
+  - [~] Camera follow with deadzone                (follow OK, deadzone chưa)
+  - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
 WEEK 7 [___] Audio + Enemy AI
   - [ ] XAudio2 init + sound loading (.wav)
@@ -108,6 +108,9 @@ WEEK 8 [___] HUD + Polish
   - [ ] Screen transitions (fade in/out)
   - [ ] Win/lose conditions
   - [ ] Bug fixing + play testing
+
+Legend: [x] = done, [~] = partial, [ ] = not started
+Last updated: 2026-04-15
 ```
 
 ### Progress Commands
