@@ -4,12 +4,11 @@ Enemy::Enemy(const Texture* texture, EntityManager& em)
     : anim_walk(texture),
       anim_dead(texture)
 {
-    anim_walk.AddFrame(0, 0, 48, 48, 0.1f);
-    anim_walk.AddFrame(48, 0, 48, 48, 0.1f);
-    anim_walk.AddFrame(96, 0, 48, 48, 0.1f);
+    anim_walk.AddFrame(5, 14, 16, 16, 0.5);
+    anim_walk.AddFrame(25, 14, 16, 16, 0.5f);
     anim_walk.SetLooping(true);
     
-    anim_dead.AddFrame(0, 48, 48, 48, 0.1f);
+    anim_dead.AddFrame(45, 21, 16, 8, 0.5f);
     anim_dead.SetLooping(false);
 
     id = em.Create();

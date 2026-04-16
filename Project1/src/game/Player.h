@@ -40,12 +40,16 @@ public:
     float GetVelX() const { return _vel_x; }
     float GetVelY() const { return _vel_y; }
 
+    void Hurt() { _is_dead = true; }
+    void Bounce(float bounce_height) { _vel_y = bounce_height; }
+
 private:
     EntityID _id;
 
     float _pos_x, _pos_y;
     float _vel_x, _vel_y;
     bool  _is_grounded = false;
+    bool  _is_dead     = false;
 
     static constexpr float SPEED       = 200.0f;  // px/s
     static constexpr float JUMP_SPEED  = 800.0f;  // px/s

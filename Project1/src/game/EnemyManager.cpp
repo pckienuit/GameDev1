@@ -115,18 +115,23 @@ void EnemyManager::RegisterAll(CollisionSystem& collision_system) {
     }
 }
 
-void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID player_id) {
+void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID player_id, Player& player) {
     for (auto& e : _enemies) {
-        if (!e.active) continue;
-        
+        if (!e.active || e.state == EnemyState::Dead) continue;
         for (int i = 0; i < pool.Count(); ++i) {
             const CollisionEvent& ev = pool.Get(i);
-            
-            if (ev.entity_a == e.id) {
-                e.ClampVelocityAlongNormal(ev.normal_x, ev.normal_y, ev.hit_time);
+            bool player_is_a = (ev.entity_a == player_id && ev.entity_b == e.id);
+            bool player_is_b = (ev.entity_b == player_id && ev.entity_a == e.id);
+            if (!player_is_a && !player_is_b) continue;
+            float ny = player_is_a ? ev.normal_y : -ev.normal_y;
+            if (ny < -0.5f && player.GetVelY() > 50.0f && (player.GetY() + player.GetH()) < (e.pos_y + Enemy::H * 0.5f)) {
+                e.state = EnemyState::Dead;
+                e.dead_timer = Enemy::DEAD_DURATION;
+                e.vel_x = 0.0f;
+                player.Bounce(-400.0f);  // px/s upward — negative Y = up
             }
-            if (ev.entity_b == e.id) {
-                e.ClampVelocityAlongNormal(-ev.normal_x, -ev.normal_y, ev.hit_time);
+            else {
+                player.Hurt();
             }
         }
     }

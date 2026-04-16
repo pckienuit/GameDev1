@@ -37,7 +37,7 @@ bool Game::Update() {
         _collision_system.Register(_dummy_id, _dummy_aabb, 0.0f, 0.0f);  // static dummy
         _enemy_manager.RegisterAll(_collision_system);
         _collision_system.Detect();
-        _enemy_manager.HandleCollisions(pool, _player.GetID());
+        _enemy_manager.HandleCollisions(pool, _player.GetID(), _player);
 
         for (int i = 0; i < pool.Count(); ++i) {
             const CollisionEvent& ev = pool.Get(i);

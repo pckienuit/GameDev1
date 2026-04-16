@@ -17,7 +17,7 @@ Player::Player(float start_x, float start_y, const Texture* texture, EntityManag
     _anim_walk.AddFrame(275, 154, 16, 26, 0.15f);  // Walk1
     _anim_walk.AddFrame(305, 154, 16, 26, 0.15f);  // Walk2
     _anim_walk.AddFrame(335, 154, 16, 26, 0.15f);  // Walk3
-    _anim_jump.AddFrame(390, 154, 16, 26, 1.0f);   // Jump
+    _anim_jump.AddFrame(246, 233, 16, 26, 1.0f);   // Jump
     _anim_jump.SetLooping(false);
 }
 
