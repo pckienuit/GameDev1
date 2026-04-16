@@ -128,6 +128,7 @@ void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID pla
                 e.state = EnemyState::Dead;
                 e.dead_timer = Enemy::DEAD_DURATION;
                 e.vel_x = 0.0f;
+                _pending_score += 100;
                 player.Bounce(-400.0f);  // px/s upward — negative Y = up
             }
             else {
@@ -151,4 +152,10 @@ int EnemyManager::ActiveCount() const {
         if (e.active) count++;
     }
     return count;
+}
+
+int EnemyManager::PopScore() {
+    int s = _pending_score;
+    _pending_score = 0;
+    return s;
 }

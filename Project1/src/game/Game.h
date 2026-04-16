@@ -11,6 +11,7 @@
 #include "../collision/CollisionSystem.h"
 #include "Player.h"
 #include "EnemyManager.h"
+#include "../renderer/ScoreRenderer.h"
 
 class Game {
 public:
@@ -32,11 +33,14 @@ private:
     Input                 _input;
 
     Renderer              _renderer;
-
     SpriteBatch           _sprite_batch;
 
     Texture               _brick_texture;
-    Texture               _mario_texture;
+    Texture               _mario_texture;   
+    Texture               _misc_texture;     // font + misc sprites
+    ScoreRenderer         _score_renderer;   // depends on _misc_texture
+
+    int                   _score = 0;
 
     EntityManager         _entity_manager;
     Tilemap               _tilemap;

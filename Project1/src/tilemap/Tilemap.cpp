@@ -42,7 +42,7 @@ bool Tilemap::LoadFromFile(const std::string& path) {
                 _tiles[row*_cols + col].type = TileType::Empty;
                 _spawn_points.push_back({token[0], col * _tile_size, row * _tile_size});
             }
-        }
+        } 
     }
 
     return true;

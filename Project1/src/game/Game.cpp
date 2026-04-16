@@ -5,6 +5,8 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _sprite_batch(_renderer.GetDevice(), _renderer.GetContext()),
                 _brick_texture(_renderer.GetDevice(), "assets/brick.png"),
                 _mario_texture(_renderer.GetDevice(), "assets/mario.png"),
+                _misc_texture(_renderer.GetDevice(), "assets/misc.png"),
+                _score_renderer(&_misc_texture),
                 _entity_manager(),
                 _tilemap(0, 0, 0),
                 _collision_system(WORLD_W, WORLD_H, CELL_SIZE, MAX_EVENTS),
@@ -45,6 +47,7 @@ bool Game::Update() {
         _enemy_manager.RegisterAll(_collision_system);
         _collision_system.Detect();
         _enemy_manager.HandleCollisions(pool, _player.GetID(), _player);
+        _score += _enemy_manager.PopScore();
 
         for (int i = 0; i < pool.Count(); ++i) {
             const CollisionEvent& ev = pool.Get(i);
@@ -91,6 +94,7 @@ void Game::Render() {
                 }
             }
         }
+    _score_renderer.Draw(_sprite_batch, _score, 10.0f, 10.0f, _camera.GetX(), _camera.GetY());
     _sprite_batch.End();
     _renderer.EndFrame();
 }

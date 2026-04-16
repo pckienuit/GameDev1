@@ -150,6 +150,7 @@
     <ClCompile Include="src\renderer\Animation.cpp" />
     <ClCompile Include="src\renderer\Camera.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
+    <ClCompile Include="src\renderer\ScoreRenderer.cpp" />
     <ClCompile Include="src\renderer\Sprite.cpp" />
     <ClCompile Include="src\renderer\SpriteBatch.cpp" />
     <ClCompile Include="src\renderer\Texture.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="src\renderer\Animation.h" />
     <ClInclude Include="src\renderer\Camera.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
+    <ClInclude Include="src\renderer\ScoreRenderer.h" />
     <ClInclude Include="src\renderer\Sprite.h" />
     <ClInclude Include="src\renderer\SpriteBatch.h" />
     <ClInclude Include="src\renderer\Texture.h" />

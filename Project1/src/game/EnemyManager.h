@@ -23,12 +23,15 @@ public:
     // --- Accessors ---
     int ActiveCount() const;
 
+    // Drain accumulated score since last call (call once per frame after HandleCollisions)
+    int PopScore();
+
 private:
     std::vector<Enemy> _enemies;   // pool cố định — không alloc trong gameplay
 
     const Texture* _goomba_texture;
-
     EntityManager& _em;
+    int            _pending_score = 0;  // accumulates stomp points between PopScore() calls
 
     // --- Private helpers ---
 
