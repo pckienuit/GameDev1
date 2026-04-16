@@ -119,6 +119,7 @@ bool Player::IsFacingLeft() const {
 }
 
 void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed) {
+    //X Vel
     _vel_x = 0.0f;
     if (move_left) {
         _vel_x = -SPEED;
@@ -128,10 +129,32 @@ void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jum
         _vel_x = SPEED;
         _facing_left = false;
     }
+
+    //Jump buffer
+    if (jump_pressed) {
+        _jump_buffer_timer = JUMP_BUFFER_TIME;
+    }
+    else {
+        _jump_buffer_timer = max(0.0f, _jump_buffer_timer - dt);
+    }
+
+    //Coyote time
+    if (_is_grounded) {
+        _coyote_timer = COYOTE_TIME;
+    }
+    else {
+        _coyote_timer = max(0.0f, _coyote_timer - dt);
+    }
+
+    //Y Vel
     _vel_y += GRAVITY * dt;
 
-    if (jump_pressed && _is_grounded) {
+    bool wants_jump = _jump_buffer_timer > 0.0f;          // player has intent
+    bool can_jump   = _is_grounded || _coyote_timer > 0.0f;  // player has ability
+    if (wants_jump && can_jump) {
         _vel_y = -JUMP_SPEED;
+        _coyote_timer      = 0.0f;  // consume — prevent double-jump off edge
+        _jump_buffer_timer = 0.0f;  // consume buffer
     }
 }
 

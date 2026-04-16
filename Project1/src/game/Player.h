@@ -4,6 +4,7 @@
 #include "../collision/AABB.h"
 #include "../ecs/EntityManager.h"
 #include <cmath>
+#include <algorithm>
 
 class Player {
 public:
@@ -59,6 +60,8 @@ private:
     int   _lives       = STARTING_LIVES;
     float _inv_timer   = 0.0f;
     bool  _game_over   = false;
+    float _coyote_timer = 0.0f;
+    float _jump_buffer_timer = 0.0f;
 
     static constexpr float SPEED       = 200.0f;  // px/s
     static constexpr float JUMP_SPEED  = 800.0f;  // px/s
@@ -68,6 +71,8 @@ private:
     static constexpr float P_DISTANCE  = 1.0f;
     static constexpr int   STARTING_LIVES = 3;
     static constexpr float INVINCIBILITY_TIME = 2.0f; //seconds
+    static constexpr float COYOTE_TIME        = 0.1f;
+    static constexpr float JUMP_BUFFER_TIME   = 0.1f;
 
     Animation _anim_idle;
     Animation _anim_walk;

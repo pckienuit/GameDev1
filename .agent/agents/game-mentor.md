@@ -81,12 +81,13 @@ WEEK 4 [100%] Collision System                    ← DONE
   - [x] CollisionEvent with object pool (zero heap alloc) (CollisionEvent.h/cpp)
   - [x] Collision resolution (blocking + trigger)  (CollisionSystem.h/cpp)
 
-WEEK 5 [60%] Mario Physics                       ← IN PROGRESS
+WEEK 5 [80%] Mario Physics                       ← IN PROGRESS
   - [x] Gravity + acceleration model               (Player.h — GRAVITY=1200)
-  - [~] Walk / run / skid / air control            (walk OK, run/skid/air control chưa)
+  - [~] Walk / run / skid / air control            (walk OK, run/skid chưa)
   - [ ] Variable jump height (hold = higher)
-  - [ ] Coyote time + jump buffering
-  - [~] State machine (idle, walk, run, jump, fall, die) (implicit via anims, chưa formal FSM)
+  - [x] Coyote time (0.1s grace after edge)        (Player::_coyote_timer)
+  - [x] Jump buffering (0.1s pre-land queue)       (Player::_jump_buffer_timer)
+  - [~] State machine (idle, walk, jump, fall, die) (implicit via anims, chưa formal FSM)
 
 WEEK 6 [75%] Tilemap + Camera                    ← IN PROGRESS
   - [x] Tile struct + TileLayer                    (Tilemap.h/cpp)
