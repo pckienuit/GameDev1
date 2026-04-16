@@ -95,6 +95,8 @@ void Game::Render() {
             }
         }
     _score_renderer.Draw(_sprite_batch, _score, 10.0f, 10.0f, _camera.GetX(), _camera.GetY());
+    _score_renderer.DrawLives(_sprite_batch, _player.GetLives(), 10.0f, 50.0f,_camera.GetX(), _camera.GetY());
+
     _sprite_batch.End();
     _renderer.EndFrame();
 }
