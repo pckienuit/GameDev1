@@ -119,15 +119,21 @@ bool Player::IsFacingLeft() const {
 }
 
 void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed, bool jump_held) {
-    //X Vel
-    _vel_x = 0.0f;
-    if (move_left) {
-        _vel_x = -SPEED;
-        _facing_left = true;
-    }
-    if (move_right) {
-        _vel_x = SPEED;
-        _facing_left = false;
+    //X Vel — acceleration based
+    float target_dir = 0.0f;
+    if (move_right) { target_dir =  1.0f; _facing_left = false; }
+    if (move_left)  { target_dir = -1.0f; _facing_left = true;  }
+
+    if (target_dir != 0.0f) {
+        bool  skidding = (_vel_x * target_dir < 0.0f);
+        float accel    = (skidding ? SKID_DECEL : ACCELERATION);
+        if (!_is_grounded) accel *= AIR_CTRL_FACTOR;
+        _vel_x += target_dir * accel * dt;
+        _vel_x  = std::clamp(_vel_x, -MAX_SPEED, MAX_SPEED);
+    } else {
+        float decel_rate = _is_grounded ? DECELERATION : DECELERATION * AIR_CTRL_FACTOR;
+        float sign       = (_vel_x > 0.0f) ? 1.0f : -1.0f;
+        _vel_x -= sign * min(std::abs(_vel_x), decel_rate * dt);  // no overshoot
     }
 
     //Jump buffer

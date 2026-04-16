@@ -74,6 +74,11 @@ private:
     static constexpr float COYOTE_TIME        = 0.1f;
     static constexpr float JUMP_BUFFER_TIME   = 0.1f;
     static constexpr float JUMP_CUT_FACTOR    = 1.6f;
+    static constexpr float MAX_SPEED          = 200.0f; //px/s
+    static constexpr float ACCELERATION       = 800.0f; //px/s^2
+    static constexpr float DECELERATION       = 600.0f; //px/s^2
+    static constexpr float SKID_DECEL         = 1200.0f; //px/s^2
+    static constexpr float AIR_CTRL_FACTOR    = 0.6f;
 
     Animation _anim_idle;
     Animation _anim_walk;
