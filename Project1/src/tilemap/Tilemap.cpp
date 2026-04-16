@@ -33,9 +33,15 @@ bool Tilemap::LoadFromFile(const std::string& path) {
 
     for (int row = 0; row < _rows; ++row) {
         for (int col = 0; col < _cols; ++col) {
-            int tile_id;
-            file >> tile_id;
-            _tiles[row*_cols + col].type = static_cast<TileType>(tile_id);
+            std::string token;
+            file >> token;
+            if (std::isdigit(token[0])) {
+                int id = std::stoi(token);
+                _tiles[row*_cols + col].type = static_cast<TileType>(id);
+            } else {
+                _tiles[row*_cols + col].type = TileType::Empty;
+                _spawn_points.push_back({token[0], col * _tile_size, row * _tile_size});
+            }
         }
     }
 

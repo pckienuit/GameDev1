@@ -2,18 +2,22 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <cctype>   
 
-// Tile type — mở rộng dần khi cần
 enum class TileType : uint8_t {
     Empty  = 0,
     Ground = 1,
     Brick  = 2,
-    // TODO: thêm QuestionBlock, Pipe... sau
 };
 
 struct Tile {
     TileType type = TileType::Empty;
-    // TODO: sau này thêm texture_id, flags (solid, one-way...)
+};
+
+struct SpawnInfo {
+    char  token;
+    int x;
+    int y;
 };
 
 class Tilemap {
@@ -39,7 +43,11 @@ public:
     bool LoadFromFile(const std::string& path);
 
     bool IsSolid(int col, int row) const;
+
+    const std::vector<SpawnInfo>& GetSpawnPoints() const { return _spawn_points; }
+
 private:
     int _cols, _rows, _tile_size;
-    std::vector<Tile> _tiles; // TODO: tại sao dùng 1D vector thay vì 2D?
+    std::vector<Tile>      _tiles;
+    std::vector<SpawnInfo> _spawn_points;
 };

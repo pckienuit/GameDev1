@@ -19,7 +19,11 @@ Game::Game() : _window("Mario Engine", 800, 600),
 {
     _tilemap.LoadFromFile("assets/level1.txt");
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()), static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
-    _enemy_manager.Spawn(EnemyType::Goomba, 500.0f, 100.0f);
+    for (const SpawnInfo& spawn : _tilemap.GetSpawnPoints()) {
+        if (spawn.token == 'G') {
+            _enemy_manager.Spawn(EnemyType::Goomba, spawn.x, spawn.y);
+        }
+    }
 }
 
 bool Game::Update() {
