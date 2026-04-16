@@ -88,29 +88,36 @@ WEEK 5 [60%] Mario Physics                       ← IN PROGRESS
   - [ ] Coyote time + jump buffering
   - [~] State machine (idle, walk, run, jump, fall, die) (implicit via anims, chưa formal FSM)
 
-WEEK 6 [60%] Tilemap + Camera                    ← IN PROGRESS
+WEEK 6 [75%] Tilemap + Camera                    ← IN PROGRESS
   - [x] Tile struct + TileLayer                    (Tilemap.h/cpp)
-  - [x] Load map from file                         (LoadFromFile — .txt format, chưa JSON/TMX)
+  - [x] Load map from file — mixed format          (LoadFromFile — số + char token 'G','K'...)
+  - [x] Enemy spawn from level file                (SpawnInfo, GetSpawnPoints(), Game.cpp loop)
   - [~] Tile-based collision (solid, one-way)      (solid OK, one-way chưa)
   - [~] Camera follow with deadzone                (follow OK, deadzone chưa)
   - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
-WEEK 7 [30%] Audio + Enemy AI                    ← IN PROGRESS
+WEEK 7 [70%] Audio + Enemy AI + Game Mechanics   ← IN PROGRESS
   - [ ] XAudio2 init + sound loading (.wav)
   - [ ] Sound manager (play, stop, volume)
   - [x] Goomba AI (patrol + die state)            (EnemyManager.h/cpp, Enemy.h/cpp)
+  - [x] Player stomp kill (triple-check condition) (EnemyManager::HandleCollisions)
+  - [x] Player bounce on stomp                     (Player::Bounce(-400.0f))
+  - [x] Player lives (3 mạng) + invincibility 2s  (Player::Hurt, TickInvincibility, _lives)
+  - [x] Invincibility blink effect                 (Player::ShouldRender, timer-based toggle)
+  - [x] Game Over (free fall, stop loop)           (Player::_game_over, Move early return)
   - [ ] Koopa AI (patrol + shell state)
   - [ ] Enemy spawn/despawn based on camera
 
-WEEK 8 [___] HUD + Polish
-  - [ ] Text rendering (bitmap font)
-  - [ ] HUD overlay (score, coins, lives, timer)
+WEEK 8 [20%] HUD + Score + Polish
+  - [x] Score system (+100 per stomp)             (EnemyManager::PopScore, Game::_score)
+  - [x] Bitmap font score display                  (ScoreRenderer.h/cpp, misc.png digits)
+  - [ ] Lives display on HUD
   - [ ] Screen transitions (fade in/out)
-  - [ ] Win/lose conditions
+  - [ ] Win condition (flag pole / end of map)
   - [ ] Bug fixing + play testing
 
 Legend: [x] = done, [~] = partial, [ ] = not started
-Last updated: 2026-04-15
+Last updated: 2026-04-16
 ```
 
 ### Progress Commands
