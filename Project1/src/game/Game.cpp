@@ -39,7 +39,7 @@ bool Game::Update() {
     while (_game_loop.ShouldUpdate()) {
         _input.Poll();
         _player.TickInvincibility(DT);
-        _player.PrepareVelocity(DT, _input.IsHeld(Action::MoveLeft), _input.IsHeld(Action::MoveRight), _input.IsPressed(Action::Jump));
+        _player.PrepareVelocity(DT, _input.IsHeld(Action::MoveLeft), _input.IsHeld(Action::MoveRight), _input.IsPressed(Action::Jump), _input.IsHeld(Action::Jump));
         _enemy_manager.Update(DT, _tilemap);
         _collision_system.BeginFrame();
         _collision_system.Register(_player.GetID(), _player.GetAABB(), _player.GetVelX(), _player.GetVelY());

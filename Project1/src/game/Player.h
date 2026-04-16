@@ -13,7 +13,7 @@ public:
     void Update(float dt, bool move_left, bool move_right, 
                 bool jump_pressed, const Tilemap& tilemap);
 
-    void PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed);
+    void PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed, bool jump_held);
     void Move(float dt, const Tilemap& tilemap);
     void ClampVelocityAlongNormal(float normal_x, float normal_y, float hit_time);
 
@@ -73,6 +73,7 @@ private:
     static constexpr float INVINCIBILITY_TIME = 2.0f; //seconds
     static constexpr float COYOTE_TIME        = 0.1f;
     static constexpr float JUMP_BUFFER_TIME   = 0.1f;
+    static constexpr float JUMP_CUT_FACTOR    = 1.6f;
 
     Animation _anim_idle;
     Animation _anim_walk;

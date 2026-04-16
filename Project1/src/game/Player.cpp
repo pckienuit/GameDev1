@@ -118,7 +118,7 @@ bool Player::IsFacingLeft() const {
     return _facing_left;
 }
 
-void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed) {
+void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jump_pressed, bool jump_held) {
     //X Vel
     _vel_x = 0.0f;
     if (move_left) {
@@ -148,6 +148,10 @@ void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jum
 
     //Y Vel
     _vel_y += GRAVITY * dt;
+
+    if (!jump_held && _vel_y < 0.0f) {
+        _vel_y += GRAVITY * (JUMP_CUT_FACTOR - 1.0f) * dt;
+    }
 
     bool wants_jump = _jump_buffer_timer > 0.0f;          // player has intent
     bool can_jump   = _is_grounded || _coyote_timer > 0.0f;  // player has ability
