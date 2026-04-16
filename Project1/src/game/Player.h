@@ -40,8 +40,14 @@ public:
     float GetVelX() const { return _vel_x; }
     float GetVelY() const { return _vel_y; }
 
-    void Hurt() { _is_dead = true; }
+    void Hurt();
     void Bounce(float bounce_height) { _vel_y = bounce_height; }
+
+    void  TickInvincibility(float dt);
+    bool  IsInvincible() const { return _inv_timer > 0.0f; }
+    bool  IsGameOver()   const { return _game_over; }
+    int   GetLives()     const { return _lives; }
+    bool  ShouldRender() const;          // blink
 
 private:
     EntityID _id;
@@ -50,13 +56,18 @@ private:
     float _vel_x, _vel_y;
     bool  _is_grounded = false;
     bool  _is_dead     = false;
+    int   _lives       = STARTING_LIVES;
+    float _inv_timer   = 0.0f;
+    bool  _game_over   = false;
 
     static constexpr float SPEED       = 200.0f;  // px/s
     static constexpr float JUMP_SPEED  = 800.0f;  // px/s
-    static constexpr float GRAVITY     = 1200.0f;  // px/s²
+    static constexpr float GRAVITY     = 1200.0f;  // px/s^2
     static constexpr float PLAYER_W    = 48.0f;
     static constexpr float PLAYER_H    = 96.0f;
     static constexpr float P_DISTANCE  = 1.0f;
+    static constexpr int   STARTING_LIVES = 3;
+    static constexpr float INVINCIBILITY_TIME = 2.0f; //seconds
 
     Animation _anim_idle;
     Animation _anim_walk;

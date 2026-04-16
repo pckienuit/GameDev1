@@ -136,6 +136,11 @@ void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jum
 }
 
 void Player::Move(float dt, const Tilemap& tilemap) {
+    if (_game_over) {
+        _pos_y += _vel_y * dt; //fall only, no tilemap
+        return;
+    }
+
     _is_grounded = false;
     // === MOVE & RESOLVE X ===
     _pos_x += _vel_x * dt;
@@ -208,4 +213,29 @@ void Player::ClampVelocityAlongNormal(float normal_x, float normal_y, float hit_
         _vel_x -= dot * normal_x;
         _vel_y -= dot * normal_y;
     }
+}
+
+void Player::Hurt() {
+    if (IsInvincible()) return;   // immune
+    --_lives;
+    if (_lives <= 0) {
+        _game_over = true;
+        _vel_x = 0;
+        _vel_y = 0;
+    } else {
+        _inv_timer = INVINCIBILITY_TIME;
+        _is_dead = false;
+    }
+}
+
+void Player::TickInvincibility(float dt) {
+    if (_inv_timer > 0.0f) {
+        _inv_timer -= dt;
+    }
+}
+
+bool Player::ShouldRender() const {
+    if (_is_dead) return false;
+    if (_inv_timer <= 0.0f) return true;
+    return static_cast<int>(_inv_timer / 0.1f) % 2 == 0;
 }

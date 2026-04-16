@@ -28,12 +28,15 @@ Game::Game() : _window("Mario Engine", 800, 600),
 
 bool Game::Update() {
     if (!_window.ProcessMessages()) return false;
+    if (_player.IsGameOver()) return false;
+
     _game_loop.Tick();
     
     const CollisionEventPool& pool = _collision_system.GetEvents();
 
     while (_game_loop.ShouldUpdate()) {
         _input.Poll();
+        _player.TickInvincibility(DT);
         _player.PrepareVelocity(DT, _input.IsHeld(Action::MoveLeft), _input.IsHeld(Action::MoveRight), _input.IsPressed(Action::Jump));
         _enemy_manager.Update(DT, _tilemap);
         _collision_system.BeginFrame();
@@ -70,7 +73,9 @@ void Game::Render() {
     _renderer.BeginFrame(0.1f, 0.1f, 0.2f);
     _sprite_batch.Begin(800.0f, 600.0f, _camera.GetX(), _camera.GetY());
         _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h, _brick_sprite, 1.0f, 0.2f, 0.2f, 1.0f);
-        _sprite_batch.Draw(_player.GetX(), _player.GetY(), _player.GetW(), _player.GetH(), _player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, _player.IsFacingLeft());
+        if (_player.ShouldRender()) {
+            _sprite_batch.Draw(_player.GetX(), _player.GetY(), _player.GetW(), _player.GetH(), _player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, _player.IsFacingLeft());
+        }
 
         _enemy_manager.RenderAll(_sprite_batch, DT);
         
