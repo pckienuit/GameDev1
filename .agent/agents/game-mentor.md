@@ -90,15 +90,15 @@ WEEK 5 [100%] Mario Physics                      ← DONE ✅
   - [x] Jump buffering (0.1s pre-land queue)        (Player::_jump_buffer_timer)
   - [~] Formal state machine (idle/walk/run/jump/fall/die)  (implicit via anims now)
 
-WEEK 6 [85%] Tilemap + Camera                    ← IN PROGRESS
+WEEK 6 [100%] Tilemap + Camera                   ← DONE ✅
   - [x] Tile struct + TileLayer                    (Tilemap.h/cpp)
   - [x] Load map from file — mixed format          (LoadFromFile — số + char token 'G','K'...)
   - [x] Enemy spawn from level file                (SpawnInfo, GetSpawnPoints(), Game.cpp loop)
-  - [~] Tile-based collision (solid, one-way)      (solid OK, one-way chưa)
+  - [x] Tile-based collision (solid, one-way)      (OneWay=3, IsBlockingFall(), X/Y separate logic)
   - [x] Camera follow with deadzone                (Camera.cpp — VIEW_RATIO=0.3, expf lerp)
   - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
-WEEK 7 [90%] Audio + Enemy AI + Game Mechanics   <- NEAR COMPLETE
+WEEK 7 [100%] Audio + Enemy AI + Game Mechanics  ← DONE ✅
   - [x] XAudio2 init + sound loading (.wav)       (SoundManager.h/cpp)
   - [x] Sound manager (play, stop, volume)         (SoundManager::Init, Load, Play)
   - [x] Jump / Stomp / Hurt / Die sounds           (Game.cpp edge detection)
@@ -108,7 +108,14 @@ WEEK 7 [90%] Audio + Enemy AI + Game Mechanics   <- NEAR COMPLETE
   - [x] Player lives (3 mạng) + invincibility 2s  (Player::Hurt, TickInvincibility, _lives)
   - [x] Invincibility blink effect                 (Player::ShouldRender, timer-based toggle)
   - [x] Game Over (death bounce + 2.5s fall anim)  (Player::_game_over, vel_y=-400, gravity)
-  - [ ] Koopa AI (patrol + shell state)
+  - [x] Koopa AI — full shell state machine        (EnemyDef data-driven, Shell/Sliding/Patrol states)
+        - [x] turns_at_edges patrol behavior
+        - [x] per-def w/h render size               (EnemyDef.w, EnemyDef.h)
+        - [x] persistent facing_left field          (mirrors Player pattern)
+        - [x] Sliding animation (reuses anim_dead)
+        - [x] Shell kick (stomp + side contact)     (HandleCollisions, break-per-event)
+        - [x] max_slide_bounces=3 wall bounce limit  (slide_bounce_count counter)
+        - [x] Grace window fix (count==0 = no hurt)  (multi-frame overlap bug)
   - [ ] Enemy spawn/despawn based on camera
 
 WEEK 8 [70%] HUD + Score + Polish                <- IN PROGRESS
@@ -123,7 +130,7 @@ WEEK 8 [70%] HUD + Score + Polish                <- IN PROGRESS
   - [ ] Bug fixing + play testing
 
 Legend: [x] = done, [~] = partial, [ ] = not started
-Last updated: 2026-04-17 (Session: XAudio2 + Win Condition + Color Key)
+Last updated: 2026-04-17 (Session: Koopa Shell AI — full state machine + bug fixes)
 ```
 
 ### Progress Commands

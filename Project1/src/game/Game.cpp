@@ -17,7 +17,8 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _dummy_id(_entity_manager.Create()),
                 _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f }),
                 _goomba_texture(_renderer.GetDevice(), "assets/enemies.png"),
-                _enemy_manager(&_goomba_texture, _entity_manager),
+                _koopa_texture(_renderer.GetDevice(), "assets/enemies.png"),
+                _enemy_manager(_entity_manager),
                 _flag_texture(_renderer.GetDevice(), "assets/flag.png", 0x93, 0xBB, 0xEC),
                 _flag_sprite(&_flag_texture, 0, 1268, 160, 160)
 {
@@ -39,7 +40,12 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()), static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
     for (const SpawnInfo& spawn : _tilemap.GetSpawnPoints()) {
         if (spawn.token == 'G') {
-            _enemy_manager.Spawn(EnemyType::Goomba, spawn.x, spawn.y);
+            _enemy_manager.Spawn(EnemyDef::GOOMBA, &_goomba_texture,
+                                 static_cast<float>(spawn.x), static_cast<float>(spawn.y));
+        }
+        if (spawn.token == 'K') {
+            _enemy_manager.Spawn(EnemyDef::KOOPA, &_koopa_texture,
+                                 static_cast<float>(spawn.x), static_cast<float>(spawn.y));
         }
         if (spawn.token == 'F') {
             constexpr float FLAG_W = 96.0f;

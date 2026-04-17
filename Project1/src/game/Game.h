@@ -66,6 +66,7 @@ private:
     AABB                  _dummy_aabb;
 
     Texture               _goomba_texture;
+    Texture               _koopa_texture;   // TODO: swap to "assets/koopa.png" when available
     EnemyManager          _enemy_manager;
 
     // Flag (win condition)

@@ -188,7 +188,7 @@ void Player::Move(float dt, const Tilemap& tilemap) {
 
         if (tilemap.IsSolid(col_right, row_top) || 
             tilemap.IsSolid(col_right, row_bot)|| 
-            tilemap.IsSolid(col_right, row_mid)) {
+            tilemap.IsSolid(col_right, row_mid))     {
             _pos_x = col_right * tilemap.GetTileSize() - PLAYER_W;
             _vel_x = 0;
         }
