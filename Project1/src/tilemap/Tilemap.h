@@ -8,6 +8,7 @@ enum class TileType : uint8_t {
     Empty  = 0,
     Ground = 1,
     Brick  = 2,
+    OneWay = 3,
 };
 
 struct Tile {
@@ -43,6 +44,8 @@ public:
     bool LoadFromFile(const std::string& path);
 
     bool IsSolid(int col, int row) const;
+    bool IsOneWay(int col, int row) const;
+    bool IsBlockingFall(int col, int row) const;
 
     const std::vector<SpawnInfo>& GetSpawnPoints() const { return _spawn_points; }
 

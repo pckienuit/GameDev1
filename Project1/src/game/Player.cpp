@@ -218,9 +218,9 @@ void Player::Move(float dt, const Tilemap& tilemap) {
         int col_mid  = tilemap.PixelToCol(_pos_x + PLAYER_W*0.5);
         int col_right = tilemap.PixelToCol(_pos_x + PLAYER_W - P_DISTANCE);
 
-        if (tilemap.IsSolid(col_left, tile_row) || 
-            tilemap.IsSolid(col_right, tile_row)||
-            tilemap.IsSolid(col_mid, tile_row)) {
+        if (tilemap.IsBlockingFall(col_left, tile_row) || 
+            tilemap.IsBlockingFall(col_right, tile_row)||
+            tilemap.IsBlockingFall(col_mid, tile_row)) {
             _pos_y = tile_row * tilemap.GetTileSize() - PLAYER_H;
             _vel_y = 0;
             _is_grounded = true;
