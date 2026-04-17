@@ -9,6 +9,10 @@ class Texture {
 public:
     explicit Texture(ID3D11Device* device, const char* path);
 
+    // Load with color key: pixels matching (key_r, key_g, key_b) become fully transparent
+    Texture(ID3D11Device* device, const char* path,
+            unsigned char key_r, unsigned char key_g, unsigned char key_b);
+
     // TODO: getter trả về ShaderResourceView để bind vào PS
     ID3D11ShaderResourceView* GetSRV() const { return _srv.Get(); }
 

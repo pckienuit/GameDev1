@@ -17,7 +17,9 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _dummy_id(_entity_manager.Create()),
                 _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f }),
                 _goomba_texture(_renderer.GetDevice(), "assets/enemies.png"),
-                _enemy_manager(&_goomba_texture, _entity_manager)
+                _enemy_manager(&_goomba_texture, _entity_manager),
+                _flag_texture(_renderer.GetDevice(), "assets/flag.png", 0x93, 0xBB, 0xEC),
+                _flag_sprite(&_flag_texture, 0, 1268, 160, 160)
 {
     // Audio — non-fatal: game runs silently if device is unavailable
     const bool audio_ok = _sound_manager.Init();
@@ -39,6 +41,11 @@ Game::Game() : _window("Mario Engine", 800, 600),
         if (spawn.token == 'G') {
             _enemy_manager.Spawn(EnemyType::Goomba, spawn.x, spawn.y);
         }
+        if (spawn.token == 'F') {
+            constexpr float FLAG_W = 96.0f;
+            constexpr float FLAG_H = 96.0f;
+            _flag_aabb = { static_cast<float>(spawn.x), static_cast<float>(spawn.y), FLAG_W, FLAG_H };
+        }
     }
 }
 
@@ -52,6 +59,14 @@ bool Game::Update() {
         _game_over_timer = 2.5f;  // seconds to show death fall
     }
     _prev_game_over = game_over_now;
+
+    // Win delay: freeze gameplay, wait 2s then quit
+    if (_is_won) {
+        const float real_dt = static_cast<float>(_game_loop.Tick());
+        _win_timer -= real_dt;
+        if (_win_timer <= 0.0f) return false;
+        return true;  // keep rendering the winning frame
+    }
 
     if (game_over_now) {
         const float real_dt = static_cast<float>(_game_loop.Tick());
@@ -116,11 +131,13 @@ bool Game::Update() {
         _prev_hurt = hurt_now;
 
 
+        // Win: player touches flag AABB
+        if (!_is_won && AABB::Overlaps(_player.GetAABB(), _flag_aabb)) {
+            _is_won    = true;
+            _win_timer = 2.0f;
+        }
+
         _camera.Follow(_player.GetX(), _player.GetY(), DT);
-        //char buf[128];
-        //sprintf_s(buf, "cam=%.0f player=%.0f\n",
-        //    _camera.GetX(), _player.GetX());
-        //OutputDebugStringA(buf);
         _camera.Clamp(_tilemap.GetWidth(), _tilemap.GetHeight());
         _game_loop.ConsumeUpdate();
     }
@@ -151,6 +168,12 @@ void Game::Render() {
         }
     _score_renderer.Draw(_sprite_batch, _score, 10.0f, 10.0f, _camera.GetX(), _camera.GetY());
     _score_renderer.DrawLives(_sprite_batch, _player.GetLives(), 10.0f, 50.0f,_camera.GetX(), _camera.GetY());
+
+    // Flag
+    if (_flag_aabb.x > -9000.0f) {
+        _sprite_batch.Draw(_flag_aabb.x, _flag_aabb.y, _flag_aabb.w, _flag_aabb.h,
+                           _flag_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
 
     _sprite_batch.End();
     _renderer.EndFrame();

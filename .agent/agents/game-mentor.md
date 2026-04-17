@@ -98,28 +98,32 @@ WEEK 6 [85%] Tilemap + Camera                    ← IN PROGRESS
   - [x] Camera follow with deadzone                (Camera.cpp — VIEW_RATIO=0.3, expf lerp)
   - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
-WEEK 7 [70%] Audio + Enemy AI + Game Mechanics   ← IN PROGRESS
-  - [ ] XAudio2 init + sound loading (.wav)
-  - [ ] Sound manager (play, stop, volume)
+WEEK 7 [90%] Audio + Enemy AI + Game Mechanics   <- NEAR COMPLETE
+  - [x] XAudio2 init + sound loading (.wav)       (SoundManager.h/cpp)
+  - [x] Sound manager (play, stop, volume)         (SoundManager::Init, Load, Play)
+  - [x] Jump / Stomp / Hurt / Die sounds           (Game.cpp edge detection)
   - [x] Goomba AI (patrol + die state)            (EnemyManager.h/cpp, Enemy.h/cpp)
   - [x] Player stomp kill (triple-check condition) (EnemyManager::HandleCollisions)
   - [x] Player bounce on stomp                     (Player::Bounce(-400.0f))
   - [x] Player lives (3 mạng) + invincibility 2s  (Player::Hurt, TickInvincibility, _lives)
   - [x] Invincibility blink effect                 (Player::ShouldRender, timer-based toggle)
-  - [x] Game Over (free fall, stop loop)           (Player::_game_over, Move early return)
+  - [x] Game Over (death bounce + 2.5s fall anim)  (Player::_game_over, vel_y=-400, gravity)
   - [ ] Koopa AI (patrol + shell state)
   - [ ] Enemy spawn/despawn based on camera
 
-WEEK 8 [50%] HUD + Score + Polish                ← IN PROGRESS
+WEEK 8 [70%] HUD + Score + Polish                <- IN PROGRESS
   - [x] Score system (+100 per stomp)             (EnemyManager::PopScore, Game::_score)
   - [x] Bitmap font score display                  (ScoreRenderer.h/cpp, misc.png digits)
-  - [x] Lives display on HUD                      (ScoreRenderer::DrawLives, heart sprite, Game.cpp:98)
+  - [x] Lives display on HUD                      (ScoreRenderer::DrawLives, heart sprite)
+  - [x] Die sound + 2.5s death animation delay    (_game_over_timer, _win_timer)
+  - [x] Win condition (flag token 'F' in level)   (Game.cpp: AABB::Overlaps, _is_won, _win_timer)
+  - [x] Color-key transparency (CPU-side)         (Texture.cpp: tolerance-based alpha zeroing)
+  - [x] convert_sounds.py tool                    (MP3->WAV via ffmpeg/MCI auto-detect)
   - [ ] Screen transitions (fade in/out)
-  - [ ] Win condition (flag pole / end of map)
   - [ ] Bug fixing + play testing
 
 Legend: [x] = done, [~] = partial, [ ] = not started
-Last updated: 2026-04-17
+Last updated: 2026-04-17 (Session: XAudio2 + Win Condition + Color Key)
 ```
 
 ### Progress Commands

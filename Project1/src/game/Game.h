@@ -13,6 +13,7 @@
 #include "Player.h"
 #include "EnemyManager.h"
 #include "../renderer/ScoreRenderer.h"
+#include "../collision/AABB.h"
 
 class Game {
 public:
@@ -45,8 +46,12 @@ private:
     int                   _score = 0;
     bool                  _prev_grounded   = true;
     bool                  _prev_hurt       = false;
-    bool                  _prev_game_over  = false;  // rising-edge: play die sound once
-    float                 _game_over_timer = -1.0f;  // countdown after death (-1 = not started)
+    bool                  _prev_game_over  = false;
+    float                 _game_over_timer = -1.0f;
+
+    // Win state
+    bool                  _is_won          = false;
+    float                 _win_timer       = -1.0f;  // countdown before quit
 
     EntityManager         _entity_manager;
     Tilemap               _tilemap;
@@ -62,4 +67,9 @@ private:
 
     Texture               _goomba_texture;
     EnemyManager          _enemy_manager;
+
+    // Flag (win condition)
+    Texture               _flag_texture;
+    Sprite                _flag_sprite;
+    AABB                  _flag_aabb = {-9999.0f, 0.0f, 0.0f, 0.0f};  // invalid until loaded
 };
