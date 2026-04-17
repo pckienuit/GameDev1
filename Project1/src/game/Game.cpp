@@ -19,6 +19,20 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _goomba_texture(_renderer.GetDevice(), "assets/enemies.png"),
                 _enemy_manager(&_goomba_texture, _entity_manager)
 {
+    // Audio — non-fatal: game runs silently if device is unavailable
+    const bool audio_ok = _sound_manager.Init();
+    OutputDebugStringA(audio_ok ? "[Sound] XAudio2 OK\n" : "[Sound] XAudio2 FAILED\n");
+
+    auto log_load = [](bool ok, const char* name) {
+        OutputDebugStringA(ok
+            ? ("[Sound] Loaded: " + std::string(name) + "\n").c_str()
+            : ("[Sound] FAILED: " + std::string(name) + "\n").c_str());
+    };
+    log_load(_sound_manager.Load(SoundID::Jump,  "assets/sounds/jump.wav"),  "jump.wav");
+    log_load(_sound_manager.Load(SoundID::Stomp, "assets/sounds/stomp.wav"), "stomp.wav");
+    log_load(_sound_manager.Load(SoundID::Hurt,  "assets/sounds/hurt.wav"),  "hurt.wav");
+    log_load(_sound_manager.Load(SoundID::Die,   "assets/sounds/die.wav"),   "die.wav");
+
     _tilemap.LoadFromFile("assets/level1.txt");
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()), static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
     for (const SpawnInfo& spawn : _tilemap.GetSpawnPoints()) {
@@ -30,7 +44,27 @@ Game::Game() : _window("Mario Engine", 800, 600),
 
 bool Game::Update() {
     if (!_window.ProcessMessages()) return false;
-    if (_player.IsGameOver()) return false;
+
+    // Game over delay: play die sound once, then wait before quitting
+    const bool game_over_now = _player.IsGameOver();
+    if (!_prev_game_over && game_over_now) {
+        _sound_manager.Play(SoundID::Die);
+        _game_over_timer = 2.5f;  // seconds to show death fall
+    }
+    _prev_game_over = game_over_now;
+
+    if (game_over_now) {
+        const float real_dt = static_cast<float>(_game_loop.Tick());
+        _game_over_timer -= real_dt;
+        if (_game_over_timer <= 0.0f) return false;
+
+        // Still run physics so Mario falls (Player::Move handles _game_over free-fall)
+        while (_game_loop.ShouldUpdate()) {
+            _player.Move(DT, _tilemap);
+            _game_loop.ConsumeUpdate();
+        }
+        return true;
+    }
 
     _game_loop.Tick();
     
@@ -47,7 +81,13 @@ bool Game::Update() {
         _enemy_manager.RegisterAll(_collision_system);
         _collision_system.Detect();
         _enemy_manager.HandleCollisions(pool, _player.GetID(), _player);
-        _score += _enemy_manager.PopScore();
+
+        // Play stomp sound when score is added
+        const int stomped = _enemy_manager.PopScore();
+        if (stomped > 0) {
+            _score += stomped;
+            _sound_manager.Play(SoundID::Stomp);
+        }
 
         for (int i = 0; i < pool.Count(); ++i) {
             const CollisionEvent& ev = pool.Get(i);
@@ -60,6 +100,21 @@ bool Game::Update() {
             }
         }
         _player.Move(DT, _tilemap);
+
+        // Jump sound: grounded → airborne edge
+        const bool grounded_now = _player.IsGrounded();
+        if (_prev_grounded && !grounded_now && _input.IsPressed(Action::Jump)) {
+            _sound_manager.Play(SoundID::Jump);
+        }
+        _prev_grounded = grounded_now;
+
+        // Hurt sound: invincibility rising edge (player just got hit)
+        const bool hurt_now = _player.IsInvincible();
+        if (!_prev_hurt && hurt_now) {
+            _sound_manager.Play(SoundID::Hurt);
+        }
+        _prev_hurt = hurt_now;
+
 
         _camera.Follow(_player.GetX(), _player.GetY(), DT);
         //char buf[128];

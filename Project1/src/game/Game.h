@@ -2,6 +2,7 @@
 #include "../core/Window.h"
 #include "../core/GameLoop.h"
 #include "../core/Input.h"
+#include "../core/SoundManager.h"
 #include "../renderer/Renderer.h"
 #include "../renderer/SpriteBatch.h"
 #include "../renderer/Texture.h"
@@ -31,6 +32,7 @@ private:
     Window                _window;
     GameLoop              _game_loop;
     Input                 _input;
+    SoundManager          _sound_manager;
 
     Renderer              _renderer;
     SpriteBatch           _sprite_batch;
@@ -41,6 +43,10 @@ private:
     ScoreRenderer         _score_renderer;   // depends on _misc_texture
 
     int                   _score = 0;
+    bool                  _prev_grounded   = true;
+    bool                  _prev_hurt       = false;
+    bool                  _prev_game_over  = false;  // rising-edge: play die sound once
+    float                 _game_over_timer = -1.0f;  // countdown after death (-1 = not started)
 
     EntityManager         _entity_manager;
     Tilemap               _tilemap;

@@ -254,7 +254,7 @@ void Player::Hurt() {
     if (_lives <= 0) {
         _game_over = true;
         _vel_x = 0;
-        _vel_y = 0;
+        _vel_y = -400.0f;  // classic Mario death: bounce up then fall
     } else {
         _inv_timer = INVINCIBILITY_TIME;
         _is_dead = false;
