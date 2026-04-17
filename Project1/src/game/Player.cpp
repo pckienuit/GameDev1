@@ -170,7 +170,8 @@ void Player::PrepareVelocity(float dt, bool move_left, bool move_right, bool jum
 
 void Player::Move(float dt, const Tilemap& tilemap) {
     if (_game_over) {
-        _pos_y += _vel_y * dt; //fall only, no tilemap
+        _vel_y += GRAVITY * dt;  // gravity pulls Mario down after the death bounce
+        _pos_y += _vel_y * dt;
         return;
     }
 
