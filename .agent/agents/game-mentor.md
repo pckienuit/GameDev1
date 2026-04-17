@@ -90,12 +90,12 @@ WEEK 5 [100%] Mario Physics                      ← DONE ✅
   - [x] Jump buffering (0.1s pre-land queue)        (Player::_jump_buffer_timer)
   - [~] Formal state machine (idle/walk/run/jump/fall/die)  (implicit via anims now)
 
-WEEK 6 [75%] Tilemap + Camera                    ← IN PROGRESS
+WEEK 6 [85%] Tilemap + Camera                    ← IN PROGRESS
   - [x] Tile struct + TileLayer                    (Tilemap.h/cpp)
   - [x] Load map from file — mixed format          (LoadFromFile — số + char token 'G','K'...)
   - [x] Enemy spawn from level file                (SpawnInfo, GetSpawnPoints(), Game.cpp loop)
   - [~] Tile-based collision (solid, one-way)      (solid OK, one-way chưa)
-  - [~] Camera follow with deadzone                (follow OK, deadzone chưa)
+  - [x] Camera follow with deadzone                (Camera.cpp — VIEW_RATIO=0.3, expf lerp)
   - [x] Camera clamping to world bounds            (Camera.cpp — Clamp())
 
 WEEK 7 [70%] Audio + Enemy AI + Game Mechanics   ← IN PROGRESS
@@ -110,16 +110,16 @@ WEEK 7 [70%] Audio + Enemy AI + Game Mechanics   ← IN PROGRESS
   - [ ] Koopa AI (patrol + shell state)
   - [ ] Enemy spawn/despawn based on camera
 
-WEEK 8 [20%] HUD + Score + Polish
+WEEK 8 [50%] HUD + Score + Polish                ← IN PROGRESS
   - [x] Score system (+100 per stomp)             (EnemyManager::PopScore, Game::_score)
   - [x] Bitmap font score display                  (ScoreRenderer.h/cpp, misc.png digits)
-  - [ ] Lives display on HUD
+  - [x] Lives display on HUD                      (ScoreRenderer::DrawLives, heart sprite, Game.cpp:98)
   - [ ] Screen transitions (fade in/out)
   - [ ] Win condition (flag pole / end of map)
   - [ ] Bug fixing + play testing
 
 Legend: [x] = done, [~] = partial, [ ] = not started
-Last updated: 2026-04-16
+Last updated: 2026-04-17
 ```
 
 ### Progress Commands
