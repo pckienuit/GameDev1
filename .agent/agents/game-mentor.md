@@ -118,7 +118,7 @@ WEEK 7 [100%] Audio + Enemy AI + Game Mechanics  ← DONE ✅
         - [x] Grace window fix (count==0 = no hurt)  (multi-frame overlap bug)
   - [ ] Enemy spawn/despawn based on camera
 
-WEEK 8 [70%] HUD + Score + Polish                <- IN PROGRESS
+WEEK 8 [70%] HUD + Score + Polish                ← IN PROGRESS
   - [x] Score system (+100 per stomp)             (EnemyManager::PopScore, Game::_score)
   - [x] Bitmap font score display                  (ScoreRenderer.h/cpp, misc.png digits)
   - [x] Lives display on HUD                      (ScoreRenderer::DrawLives, heart sprite)
@@ -126,11 +126,12 @@ WEEK 8 [70%] HUD + Score + Polish                <- IN PROGRESS
   - [x] Win condition (flag token 'F' in level)   (Game.cpp: AABB::Overlaps, _is_won, _win_timer)
   - [x] Color-key transparency (CPU-side)         (Texture.cpp: tolerance-based alpha zeroing)
   - [x] convert_sounds.py tool                    (MP3->WAV via ffmpeg/MCI auto-detect)
+  - [x] Coin collectibles ('C' token + sound)     (Game.cpp: _coins vector, +10 score, coin.wav)
   - [ ] Screen transitions (fade in/out)
   - [ ] Bug fixing + play testing
 
 Legend: [x] = done, [~] = partial, [ ] = not started
-Last updated: 2026-04-17 (Session: Koopa Shell AI — full state machine + bug fixes)
+Last updated: 2026-04-19 (Session: Progress check — Week 6→100%, coin system confirmed)
 ```
 
 ### Progress Commands
