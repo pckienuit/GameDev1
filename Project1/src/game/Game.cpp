@@ -35,6 +35,7 @@ Game::Game() : _window("Mario Engine", 800, 600),
     log_load(_sound_manager.Load(SoundID::Stomp, "assets/sounds/stomp.wav"), "stomp.wav");
     log_load(_sound_manager.Load(SoundID::Hurt,  "assets/sounds/hurt.wav"),  "hurt.wav");
     log_load(_sound_manager.Load(SoundID::Die,   "assets/sounds/die.wav"),   "die.wav");
+    log_load(_sound_manager.Load(SoundID::Coin,  "assets/sounds/coin.wav"),  "coin.wav");
 
     _tilemap.LoadFromFile("assets/level1.txt");
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()), static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
@@ -51,6 +52,11 @@ Game::Game() : _window("Mario Engine", 800, 600),
             constexpr float FLAG_W = 96.0f;
             constexpr float FLAG_H = 96.0f;
             _flag_aabb = { static_cast<float>(spawn.x), static_cast<float>(spawn.y), FLAG_W, FLAG_H };
+        }
+        if (spawn.token == 'C') {
+            constexpr float COIN_W = 32.0f;
+            constexpr float COIN_H = 32.0f;
+            _coins.push_back({ static_cast<float>(spawn.x), static_cast<float>(spawn.y), COIN_W, COIN_H });
         }
     }
 }
@@ -103,6 +109,17 @@ bool Game::Update() {
         _collision_system.Detect();
         _enemy_manager.HandleCollisions(pool, _player.GetID(), _player);
 
+        // Collect coins
+        for (auto& coin : _coins) {
+            if (coin.x < -9000.0f) continue;  // already collected
+            
+            if (AABB::Overlaps(_player.GetAABB(), coin)) {
+                coin.x = -9999.0f;           // sentinel: mark collected
+                _score += 10;
+                _sound_manager.Play(SoundID::Coin);
+            }
+        }
+
         // Play stomp sound when score is added
         const int stomped = _enemy_manager.PopScore();
         if (stomped > 0) {
@@ -122,7 +139,7 @@ bool Game::Update() {
         }
         _player.Move(DT, _tilemap);
 
-        // Jump sound: grounded → airborne edge
+        // Jump sound: grounded -> airborne edge
         const bool grounded_now = _player.IsGrounded();
         if (_prev_grounded && !grounded_now && _input.IsPressed(Action::Jump)) {
             _sound_manager.Play(SoundID::Jump);
@@ -156,6 +173,11 @@ void Game::Render() {
         _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h, _brick_sprite, 1.0f, 0.2f, 0.2f, 1.0f);
         if (_player.ShouldRender()) {
             _sprite_batch.Draw(_player.GetX(), _player.GetY(), _player.GetW(), _player.GetH(), _player.GetSprite(DT), 1.0f, 1.0f, 1.0f, 1.0f, _player.IsFacingLeft());
+        }
+
+        for (const auto& coin : _coins) {
+            if (coin.x < -9000.0f) continue;
+            _sprite_batch.Draw(coin.x, coin.y, coin.w, coin.h, _brick_sprite, 1.0f, 1.0f, 0.0f, 1.0f);
         }
 
         _enemy_manager.RenderAll(_sprite_batch, DT);

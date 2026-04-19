@@ -23,13 +23,6 @@ enum class SoundID : int {
     Count
 };
 
-// -----------------------------------------------------------------------
-// SoundManager
-//   - Owns the XAudio2 engine + mastering voice
-//   - Loads PCM .wav files into memory buffers
-//   - Plays sounds via one-shot source voices (fire-and-forget)
-//   - Supports per-sound volume
-// -----------------------------------------------------------------------
 class SoundManager {
 public:
     SoundManager();

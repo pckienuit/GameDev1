@@ -73,4 +73,7 @@ private:
     Texture               _flag_texture;
     Sprite                _flag_sprite;
     AABB                  _flag_aabb = {-9999.0f, 0.0f, 0.0f, 0.0f};  // invalid until loaded
+
+    // Coin
+    std::vector<AABB>     _coins;
 };
