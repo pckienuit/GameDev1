@@ -13,6 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QFrame, QFileDialog, QStatusBar,
@@ -24,6 +26,7 @@ from PyQt6.QtGui import QAction, QKeySequence, QFont, QColor, QPalette
 from desktop.toolbar import SpriteCutterToolbar, EditorMode
 from desktop.sprite_canvas import SpriteCanvas
 from desktop.sidebar import SidebarWidget
+from desktop.detect_dialog import DetectionDialog
 
 
 # ── Placeholder widgets (replaced in later phases) ────────────────────────────
@@ -201,6 +204,29 @@ class MainWindow(QMainWindow):
         act_copy_cpp.setEnabled(False)
         edit_menu.addAction(act_copy_cpp)
 
+        # ── Detect ────────────────────────────────────────────────────────────
+        detect_menu = mb.addMenu("&Detect")
+
+        self._act_auto_detect = QAction("&Auto Detect (CV)", self)
+        self._act_auto_detect.setShortcut(QKeySequence("Ctrl+D"))
+        self._act_auto_detect.setStatusTip("Run OpenCV auto-detection on current image")
+        self._act_auto_detect.setEnabled(False)
+        self._act_auto_detect.triggered.connect(self._on_auto_detect)
+        detect_menu.addAction(self._act_auto_detect)
+
+        detect_menu.addSeparator()
+
+        self._act_clear_all = QAction("&Clear All Regions", self)
+        self._act_clear_all.setShortcut(QKeySequence("Ctrl+Shift+X"))
+        self._act_clear_all.setEnabled(False)
+        self._act_clear_all.triggered.connect(
+            lambda: (
+                self._viewer.clear_regions(),
+                self.set_sprite_count(0),
+            )
+        )
+        detect_menu.addAction(self._act_clear_all)
+
         # ── View ──────────────────────────────────────────────────────────────
         view_menu = mb.addMenu("&View")
 
@@ -320,11 +346,13 @@ class MainWindow(QMainWindow):
     # ── Public API (used by later phases) ─────────────────────────────────────
 
     def set_image_path(self, path: Path) -> None:
-        """Called from Phase 7 ImageViewer when image is loaded."""
+        """Called when image is loaded."""
         self._image_path = path
         self._act_export.setEnabled(True)
         self._act_import.setEnabled(True)
         self._act_undo.setEnabled(True)
+        self._act_auto_detect.setEnabled(True)
+        self._act_clear_all.setEnabled(True)
         self._update_title()
         self._update_statusbar()
 
@@ -392,6 +420,62 @@ class MainWindow(QMainWindow):
             self._viewer.select_region(regions[row])
         else:
             self._viewer.select_region(None)
+
+    def _on_auto_detect(self) -> None:
+        """10.1-10.4: Open DetectionDialog and push results to canvas."""
+        if not self._viewer.has_image():
+            return
+        # Get raw numpy image from the loaded pixmap
+        pixmap = self._viewer._pixmap
+        if pixmap is None:
+            return
+        import cv2
+        img_np = self._pixmap_to_numpy(pixmap)
+        if img_np is None:
+            self.statusBar().showMessage("Cannot convert image for detection.", 3000)
+            return
+
+        # Auto-detect background from corners
+        from core.cv_detector import detect_background_color
+        bg = detect_background_color(img_np)
+
+        dlg = DetectionDialog(img_np, initial_bg=bg, parent=self)
+        if dlg.exec() != DetectionDialog.DialogCode.Accepted:
+            return
+
+        regions = dlg.result_regions()
+        if not regions:
+            self.statusBar().showMessage("No sprites detected.", 3000)
+            return
+
+        if dlg.replace_existing():
+            self._viewer.clear_regions()
+        for r in regions:
+            self._viewer.add_region(r)
+
+        count = len(self._viewer.regions())
+        self.set_sprite_count(count)
+        self._sidebar.refresh_sprites(self._viewer.regions())
+        self.statusBar().showMessage(
+            f"Auto-detect: added {len(regions)} sprite(s).  Total: {count}.",
+            5000
+        )
+
+    @staticmethod
+    def _pixmap_to_numpy(pixmap) -> Optional[np.ndarray]:
+        """Convert QPixmap to numpy BGRA array for OpenCV."""
+        try:
+            from PyQt6.QtGui import QImage
+            import cv2
+            img = pixmap.toImage().convertToFormat(QImage.Format.Format_RGBA8888)
+            w, h = img.width(), img.height()
+            ptr  = img.bits()
+            ptr.setsize(h * w * 4)   # Required for PyQt6 sip.voidptr
+            arr  = np.frombuffer(ptr, dtype=np.uint8).reshape((h, w, 4)).copy()
+            return cv2.cvtColor(arr, cv2.COLOR_RGBA2BGRA)
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            return None
 
     def _on_about(self) -> None:
         try:
