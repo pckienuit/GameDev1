@@ -1,22 +1,24 @@
 #include "ScoreRenderer.h"
 #include <string>
 
-ScoreRenderer::ScoreRenderer(const Texture* font_texture) {
+ScoreRenderer::ScoreRenderer(const Texture* font_texture) : _sheet(font_texture) {
     for (int i = 0; i < 5; ++i) {
-        _digits[i]     = Sprite(font_texture, 494 + i * DIGIT_W, 224, DIGIT_W, DIGIT_H);
-        _digits[i + 5] = Sprite(font_texture, 494 + i * DIGIT_W, 238, DIGIT_W, DIGIT_H);
+        int gap;
+        if (i == 0) gap = 0;
+        else gap = DIGIT_GAP;
+        _sheet.Define(std::string(1, '0' + i),     496 + i * DIGIT_W + gap, 224, DIGIT_W, DIGIT_H);
+        _sheet.Define(std::string(1, '0' + i + 5), 496 + i * DIGIT_W + gap, 240, DIGIT_W, DIGIT_H);
     }
-    _heart = Sprite(font_texture, 596, 193, HEART_W, HEART_H);
+    _sheet.Define("heart", 596, 193, HEART_W, HEART_H);
 }
 
 void ScoreRenderer::Draw(SpriteBatch& batch, int score, float screen_x, float screen_y, 
                           float cam_x, float cam_y) const {
     std::string s = std::to_string(score);
     for (size_t i = 0; i < s.size(); ++i) {
-        int digit = s[i] - '0';
-        float draw_x = cam_x + screen_x + i * (DIGIT_W * DIGIT_SCALE + DIGIT_GAP);
+        float draw_x = cam_x + screen_x + i * (DIGIT_W * DIGIT_SCALE + DIGIT_DGAP);
         float draw_y = cam_y + screen_y;
-        batch.Draw(draw_x, draw_y, DIGIT_W * DIGIT_SCALE, DIGIT_H * DIGIT_SCALE, _digits[digit], 1.0f, 1.0f, 1.0f, 1.0f);
+        batch.Draw(draw_x, draw_y, DIGIT_W * DIGIT_SCALE, DIGIT_H * DIGIT_SCALE, _sheet.GetChar(s[i]), 1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
 
@@ -36,10 +38,10 @@ void ScoreRenderer::DrawLives(SpriteBatch& batch, int lives,
 
     batch.Draw(draw_x, draw_y + heart_offset_y,
                heart_scaled_w, heart_scaled_h,
-               _heart, 1.0f, 1.0f, 1.0f, 1.0f);
+               _sheet.Get("heart"), 1.0f, 1.0f, 1.0f, 1.0f);
 
     float digit_x = draw_x + heart_scaled_w + HEART_GAP;
     batch.Draw(digit_x, draw_y,
                DIGIT_W * DIGIT_SCALE, digit_scaled_h,
-               _digits[draw_lives], 1.0f, 1.0f, 1.0f, 1.0f);
+               _sheet.GetChar(draw_lives + '0'), 1.0f, 1.0f, 1.0f, 1.0f);
 }

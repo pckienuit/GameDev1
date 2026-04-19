@@ -69,7 +69,7 @@ private:
     static constexpr float PLAYER_W    = 48.0f;
     static constexpr float PLAYER_H    = 96.0f;
     static constexpr float P_DISTANCE  = 1.0f;
-    static constexpr int   STARTING_LIVES = 3;
+    static constexpr int   STARTING_LIVES = 9;
     static constexpr float INVINCIBILITY_TIME = 2.0f; //seconds
     static constexpr float COYOTE_TIME        = 0.1f;
     static constexpr float JUMP_BUFFER_TIME   = 0.1f;

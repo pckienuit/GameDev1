@@ -2,6 +2,7 @@
 #include "Sprite.h"
 #include "Texture.h"
 #include "SpriteBatch.h"
+#include "SpriteSheet.h"
 #include <algorithm>
 #include <string>
 
@@ -16,13 +17,13 @@ public:
                    float cam_x, float cam_y) const;
 
 private:
-    static constexpr int   DIGIT_W    = 10;
+    static constexpr int   DIGIT_W    = 8;
     static constexpr int   DIGIT_H    = 14;
     static constexpr float DIGIT_SCALE = 2.5f;
-    static constexpr int   DIGIT_GAP  = 3;
+    static constexpr int   DIGIT_DGAP = 4;
+    static constexpr int   DIGIT_GAP  = 2;
 
-    Sprite _digits[10];  // index = digit value
-    Sprite _heart;
+    SpriteSheet            _sheet;
 
     static constexpr int   HEART_W    = 10;
     static constexpr int   HEART_H    = 10;
