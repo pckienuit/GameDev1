@@ -22,6 +22,7 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QAction, QKeySequence, QFont, QColor, QPalette
 
 from desktop.toolbar import SpriteCutterToolbar, EditorMode
+from desktop.image_viewer import ImageViewer
 
 
 # ── Placeholder widgets (replaced in later phases) ────────────────────────────
@@ -243,11 +244,20 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Canvas (center, expandable)
-        self._canvas_placeholder = _PlaceholderCanvas()
-        layout.addWidget(self._canvas_placeholder)
+        # 7.1  Real image viewer (replaces placeholder canvas)
+        self._viewer = ImageViewer()
+        self._viewer.pixel_hovered.connect(
+            lambda x, y: (
+                self.set_cursor_coords(x, y),
+            )
+        )
+        self._viewer.pixel_left_image.connect(self.clear_cursor_coords)
+        self._viewer.zoom_changed.connect(
+            lambda z: self.set_zoom(z)
+        )
+        layout.addWidget(self._viewer)
 
-        # Sidebar (right, fixed width)
+        # Sidebar (right, fixed width — replaced in Phase 9)
         self._sidebar_placeholder = _PlaceholderSidebar()
         layout.addWidget(self._sidebar_placeholder)
 
@@ -321,7 +331,7 @@ class MainWindow(QMainWindow):
     # ── Slots ─────────────────────────────────────────────────────────────────
 
     def _on_open_image(self) -> None:
-        """6.5 — File → Open Image."""
+        """7.1 — File → Open Image: load into real ImageViewer."""
         path_str, _ = QFileDialog.getOpenFileName(
             self,
             "Open Sprite Sheet",
@@ -331,9 +341,15 @@ class MainWindow(QMainWindow):
         if not path_str:
             return
         path = Path(path_str)
+        ok = self._viewer.load_image(path)
+        if not ok:
+            self.statusBar().showMessage(f"Failed to load: {path.name}", 4000)
+            return
         self.set_image_path(path)
-        # Phase 7 will connect the real canvas here; for now just show status
-        self.statusBar().showMessage(f"Opened: {path.name}", 3000)
+        w, h = self._viewer.image_size()
+        self.statusBar().showMessage(
+            f"Opened: {path.name}  ({w}×{h} px)", 4000
+        )
 
     def _on_mode_changed(self, mode: EditorMode) -> None:
         self._lbl_mode.setText(f"Mode: {mode.name.capitalize()}")

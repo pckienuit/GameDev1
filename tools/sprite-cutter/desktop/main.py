@@ -1,8 +1,17 @@
 """
 SpriteCutter Desktop — Entry point.
-Run: python -m desktop.main
+
+Run options (both work):
+  python -m desktop.main          (from sprite-cutter/ root)
+  python main.py                  (from inside desktop/ folder)
 """
 import sys
+from pathlib import Path
+
+# Ensure sprite-cutter root is on sys.path regardless of CWD
+_root = Path(__file__).resolve().parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
 from desktop.main_window import MainWindow
