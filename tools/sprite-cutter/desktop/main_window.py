@@ -296,12 +296,8 @@ class MainWindow(QMainWindow):
         self._toolbar.mode_changed.connect(self._on_mode_changed)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self._toolbar)
 
-        # Disable AI until MobileSAM confirmed available
-        try:
-            import mobile_sam  # noqa: F401
-            self._toolbar.set_ai_enabled(True)
-        except ImportError:
-            self._toolbar.set_ai_enabled(False)
+        # AI mode uses built-in OpenCV smart-click (no external model needed)
+        self._toolbar.set_ai_enabled(True)
 
     # ── 6.3  Central layout ───────────────────────────────────────────────────
 
@@ -421,6 +417,15 @@ class MainWindow(QMainWindow):
         self._update_title()
         self._update_statusbar()
 
+    def _set_canvas_ai_image(self) -> None:
+        """Convert loaded pixmap to numpy and push to canvas for AI mode."""
+        try:
+            img_np = self._pixmap_to_numpy(self._viewer._pixmap)
+            if img_np is not None:
+                self._viewer.set_ai_image(img_np)
+        except Exception:
+            pass   # non-critical, AI mode will just be inactive
+
     def set_sprite_count(self, count: int) -> None:
         self._sprite_count = count
         self._lbl_count.setText(f"Sprites: {count}")
@@ -453,10 +458,10 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"Failed to load: {path.name}", 4000)
             return
         self.set_image_path(path)
+        self._add_to_recent(path)
+        self._set_canvas_ai_image()   # prepare image for AI smart-click
         w, h = self._viewer.image_size()
-        self.statusBar().showMessage(
-            f"Opened: {path.name}  ({w}×{h} px)", 4000
-        )
+        self.statusBar().showMessage(f"Opened: {path.name}  ({w}x{h} px)", 4000)
 
     def _on_mode_changed(self, mode: EditorMode) -> None:
         self._lbl_mode.setText(f"Mode: {mode.name.capitalize()}")
@@ -466,6 +471,15 @@ class MainWindow(QMainWindow):
             self._viewer.set_grid_config(None)
         elif mode == EditorMode.GRID and self._viewer.has_image():
             self._open_grid_dialog()
+        # AI mode: show hint if image not set yet
+        if mode == EditorMode.AI and self._viewer._ai_image is None:
+            self.statusBar().showMessage(
+                "AI Smart-Click: open an image first, then click a sprite", 4000
+            )
+        elif mode == EditorMode.AI:
+            self.statusBar().showMessage(
+                "AI Smart-Click: click any sprite to auto-detect its boundary", 4000
+            )
 
     def _on_canvas_region_selected(self, region) -> None:
         """Canvas selected -> update sidebar + enable/disable Delete."""

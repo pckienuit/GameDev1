@@ -27,6 +27,7 @@ from desktop.image_viewer import ImageViewer
 from desktop.toolbar import EditorMode
 from core.models import SpriteRegion
 from core.grid_detector import GridConfig
+from core.cv_detector import smart_click_detect
 
 
 # ── Visual constants ──────────────────────────────────────────────────────────
@@ -128,6 +129,9 @@ class SpriteCanvas(ImageViewer):
         # ── Grid-mode overlay state (Phase 11) ──────────────────────────────
         self._grid_config: Optional[GridConfig] = None
 
+        # ── AI Smart-Click state ──────────────────────────────────────────────
+        self._ai_image:   Optional[object] = None  # numpy array, set by MainWindow
+
     # ── Region management ────────────────────────────────────────────────────
 
     def set_regions(self, regions: list[SpriteRegion]) -> None:
@@ -187,6 +191,10 @@ class SpriteCanvas(ImageViewer):
         """11.1: Set grid overlay config. Pass None to clear."""
         self._grid_config = config
         self.update()
+
+    def set_ai_image(self, image_np) -> None:
+        """Set numpy array for AI smart-click mode (from MainWindow)."""
+        self._ai_image = image_np
 
     # ── Undo ──────────────────────────────────────────────────────────────────
 
@@ -331,8 +339,8 @@ class SpriteCanvas(ImageViewer):
         if not cfg:
             return
 
-        step_x = cfg.tile_w + cfg.padding
-        step_y = cfg.tile_h + (cfg.padding_y if cfg.padding_y else cfg.padding)
+        step_x = cfg.tile_w + cfg.gap_h
+        step_y = cfg.tile_h + cfg.gap_v
 
         pen = QPen(CLR_GRID_LINE, 0)   # cosmetic 1-screen-px line
         painter.setPen(pen)
@@ -379,7 +387,51 @@ class SpriteCanvas(ImageViewer):
             x_img += step_x
             row   += 1
 
+    # ── AI Smart-Click ────────────────────────────────────────────────────────
+
+    def _on_ai_click(self, pos: QPointF) -> None:
+        """Click in AI mode → find sprite under cursor via connected-component."""
+        if self._ai_image is None:
+            return   # MainWindow hasn't set image yet
+
+        img_pt = self._widget_to_image(pos)
+        cx, cy  = int(img_pt.x()), int(img_pt.y())
+
+        # Already have a region there? Select it instead
+        hit = self._region_at(pos)
+        if hit is not None:
+            self.select_region(hit)
+            return
+
+        result = smart_click_detect(
+            self._ai_image, cx, cy,
+            tolerance=20, min_area=16, padding=1,
+        )
+        if result is None:
+            return   # background click — do nothing
+
+        rx, ry, rw, rh = result
+        idx     = len(self._regions) + 1
+        default = f"sprite_{idx:03d}"
+        name, ok = QInputDialog.getText(
+            self, "Name Region",
+            f"AI detected region at ({rx},{ry})  [{rw}x{rh}]:",
+            text=default,
+        )
+        if not ok or not name.strip():
+            return
+
+        region = SpriteRegion(name.strip(), rx, ry, rw, rh)
+        self._push_undo()
+        self._regions.append(region)
+        self._selected = region
+        self.update()
+        self.region_added.emit(region)
+        self.regions_changed.emit()
+        self.region_selected.emit(region)
+
     # ── 8.2  Draw mode interactions ───────────────────────────────────────────
+
 
     def _on_draw_press(self, pos: QPointF) -> None:
         img = self._widget_to_image(pos)
@@ -529,6 +581,8 @@ class SpriteCanvas(ImageViewer):
                 self._on_draw_press(pos)
             elif self._mode == EditorMode.SELECT:
                 self._on_select_press(pos)
+            elif self._mode == EditorMode.AI:
+                self._on_ai_click(pos)
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         super().mouseMoveEvent(event)          # crosshair + pan

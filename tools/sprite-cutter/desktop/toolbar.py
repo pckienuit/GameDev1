@@ -37,7 +37,7 @@ _MODE_ICONS: dict[EditorMode, str] = {
 _MODE_TIPS: dict[EditorMode, str] = {
     EditorMode.SELECT: "Select mode — click to select/move a region  [1]",
     EditorMode.DRAW:   "Draw mode — click+drag to create a region    [2]",
-    EditorMode.AI:     "AI mode — click to AI-segment a sprite       [3]",
+    EditorMode.AI:     "Smart-Click — click a sprite to auto-detect boundary  [3]",
     EditorMode.GRID:   "Grid mode — slice sheet into uniform grid     [4]",
 }
 
@@ -119,10 +119,9 @@ class SpriteCutterToolbar(QToolBar):
 
     def set_ai_enabled(self, enabled: bool) -> None:
         self._mode_buttons[EditorMode.AI].setEnabled(enabled)
-        if not enabled:
-            self._mode_buttons[EditorMode.AI].setToolTip(
-                "AI mode — MobileSAM not installed (pip install mobile-sam)"
-            )
+        tip = _MODE_TIPS[EditorMode.AI] if enabled else \
+              "Smart-Click — requires OpenCV (pip install opencv-python)"
+        self._mode_buttons[EditorMode.AI].setToolTip(tip)
 
     # ── Slots ─────────────────────────────────────────────────────────────────
 

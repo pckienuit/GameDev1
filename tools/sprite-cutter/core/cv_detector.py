@@ -294,3 +294,62 @@ class CVDetector:
             cv2.rectangle(vis, (r.x, r.y), (r.x + r.w, r.y + r.h),
                           (0, 255, 255), 1)
         return vis
+
+
+# ─── Smart Click Detect (AI mode — no ML required) ────────────────────────────
+
+def smart_click_detect(
+    image: np.ndarray,
+    click_x: int,
+    click_y: int,
+    tolerance: int = 20,
+    min_area: int = 16,
+    padding: int = 1,
+    name: str = "sprite",
+) -> Optional[tuple[int, int, int, int]]:
+    """
+    Given a click point, find the sprite bounding box around it.
+
+    Strategy:
+      1. Build foreground mask (background subtraction by colour).
+      2. Find the connected component that contains (click_x, click_y).
+      3. Return its bounding rectangle (x, y, w, h) expanded by `padding`.
+
+    Returns (x, y, w, h) in image coordinates, or None if click is on background.
+    """
+    h, w = image.shape[:2]
+    click_x = max(0, min(click_x, w - 1))
+    click_y = max(0, min(click_y, h - 1))
+
+    # 1. Foreground mask
+    bg_color = detect_background_color(image)
+    mask = build_foreground_mask(image, bg_color, tolerance)
+
+    # If the clicked pixel is background → expand tolerance and try again
+    if mask[click_y, click_x] == 0:
+        mask = build_foreground_mask(image, bg_color, tolerance * 2)
+        if mask[click_y, click_x] == 0:
+            return None   # truly background
+
+    # 2. Connected components
+    num_labels, labels = cv2.connectedComponents(mask, connectivity=8)
+    target_label = int(labels[click_y, click_x])
+    if target_label == 0:
+        return None   # background component
+
+    # 3. Bounding rect of target component
+    component_mask = (labels == target_label).astype(np.uint8)
+    ys, xs = np.where(component_mask)
+    if len(xs) < min_area:
+        return None   # too small
+
+    x0 = max(0, int(xs.min()) - padding)
+    y0 = max(0, int(ys.min()) - padding)
+    x1 = min(w,  int(xs.max()) + padding + 1)
+    y1 = min(h,  int(ys.max()) + padding + 1)
+    rw, rh = x1 - x0, y1 - y0
+
+    if rw * rh < min_area:
+        return None
+
+    return x0, y0, rw, rh
