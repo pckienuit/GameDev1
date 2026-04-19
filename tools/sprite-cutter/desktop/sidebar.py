@@ -448,3 +448,7 @@ class SidebarWidget(QWidget):
 
     def refresh_groups(self, groups: list[AnimGroup]) -> None:
         self._anim.refresh_groups(groups)
+
+    def animation_groups(self) -> list[AnimGroup]:
+        """Return current animation groups (for export)."""
+        return list(self._anim._groups)

@@ -124,8 +124,8 @@ def project_to_cpp(project: SpriteProject) -> str:
     # Header comment
     img_name = Path(project.image_path).name
     sections.append(
-        f"// ── SpriteCutter export: {img_name} "
-        f"({project.image_size[0]}×{project.image_size[1]}) ──"
+        f"// -- SpriteCutter export: {img_name} "
+        f"({project.image_size[0]}x{project.image_size[1]}) --"
     )
 
     # Ungrouped sprites → Define calls

@@ -15,6 +15,9 @@ from typing import Optional
 
 import numpy as np
 
+from core.exporter import export_json, import_json, project_to_cpp, region_to_cpp
+from core.models import SpriteProject, SpriteRegion, AnimGroup
+
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QLabel, QFrame, QFileDialog, QStatusBar,
@@ -168,12 +171,14 @@ class MainWindow(QMainWindow):
         self._act_export.setShortcut(QKeySequence("Ctrl+S"))
         self._act_export.setStatusTip("Export sprite data to JSON")
         self._act_export.setEnabled(False)
+        self._act_export.triggered.connect(self._on_export_json)
         file_menu.addAction(self._act_export)
 
         self._act_import = QAction("&Import JSON…", self)
         self._act_import.setShortcut(QKeySequence("Ctrl+Shift+O"))
         self._act_import.setStatusTip("Import sprite data from JSON")
-        self._act_import.setEnabled(False)
+        self._act_import.setEnabled(True)
+        self._act_import.triggered.connect(self._on_import_json)
         file_menu.addAction(self._act_import)
 
         file_menu.addSeparator()
@@ -200,10 +205,12 @@ class MainWindow(QMainWindow):
 
         edit_menu.addSeparator()
 
-        act_copy_cpp = QAction("&Copy C++ Snippet", self)
-        act_copy_cpp.setShortcut(QKeySequence("Ctrl+Shift+C"))
-        act_copy_cpp.setEnabled(False)
-        edit_menu.addAction(act_copy_cpp)
+        self._act_copy_cpp = QAction("&Copy C++ Snippet", self)
+        self._act_copy_cpp.setShortcut(QKeySequence("Ctrl+Shift+C"))
+        self._act_copy_cpp.setStatusTip("Copy full C++ snippet to clipboard")
+        self._act_copy_cpp.setEnabled(False)
+        self._act_copy_cpp.triggered.connect(self._on_copy_cpp)
+        edit_menu.addAction(self._act_copy_cpp)
 
         # ── Detect ────────────────────────────────────────────────────────────
         detect_menu = mb.addMenu("&Detect")
@@ -354,6 +361,7 @@ class MainWindow(QMainWindow):
         self._act_undo.setEnabled(True)
         self._act_auto_detect.setEnabled(True)
         self._act_clear_all.setEnabled(True)
+        self._act_copy_cpp.setEnabled(True)
         self._update_title()
         self._update_statusbar()
 
@@ -426,6 +434,98 @@ class MainWindow(QMainWindow):
             self._viewer.select_region(regions[row])
         else:
             self._viewer.select_region(None)
+
+    # ── 12  Export / Import / Copy C++ ───────────────────────────────────────────
+
+    def _build_project(self) -> SpriteProject:
+        """Assemble a SpriteProject from current canvas state."""
+        w, h = self._viewer.image_size() if self._viewer.has_image() else (0, 0)
+        img_path = str(self._image_path) if self._image_path else ""
+        project  = SpriteProject(
+            image_path  = img_path,
+            image_size  = (w, h),
+            sprites     = self._viewer.regions(),
+            groups      = self._sidebar.animation_groups(),
+        )
+        return project
+
+    def _on_export_json(self) -> None:
+        """12.1: File → Export JSON."""
+        if not self._viewer.has_image() and not self._viewer.regions():
+            return
+        default_stem = self._image_path.stem if self._image_path else "sprites"
+        default_dir  = str(self._image_path.parent) if self._image_path else ""
+        path_str, _ = QFileDialog.getSaveFileName(
+            self, "Export JSON",
+            str(Path(default_dir) / f"{default_stem}.json"),
+            "JSON Files (*.json);;All Files (*)",
+        )
+        if not path_str:
+            return
+        try:
+            project = self._build_project()
+            export_json(project, path_str)
+            self.statusBar().showMessage(
+                f"Exported {len(project.sprites)} sprites to {Path(path_str).name}",
+                5000
+            )
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Export Failed", str(e))
+
+    def _on_import_json(self) -> None:
+        """12.2: File → Import JSON."""
+        default_dir = str(self._image_path.parent) if self._image_path else ""
+        path_str, _ = QFileDialog.getOpenFileName(
+            self, "Import JSON",
+            default_dir,
+            "JSON Files (*.json);;All Files (*)",
+        )
+        if not path_str:
+            return
+        try:
+            project = import_json(path_str)
+            # Load image if we don't have one yet
+            if not self._viewer.has_image() and project.image_path:
+                img_path = Path(project.image_path)
+                if img_path.exists():
+                    self._viewer.load_image(img_path)
+                    self.set_image_path(img_path)
+
+            # Push regions to canvas
+            self._viewer.clear_regions()
+            for r in project.sprites:
+                self._viewer.add_region(r)
+
+            # Push groups to sidebar
+            if hasattr(self._sidebar, 'refresh_groups'):
+                self._sidebar.refresh_groups(project.groups)
+
+            count = len(self._viewer.regions())
+            self.set_sprite_count(count)
+            self._sidebar.refresh_sprites(self._viewer.regions())
+            self.statusBar().showMessage(
+                f"Imported {count} sprites from {Path(path_str).name}",
+                5000
+            )
+        except Exception as e:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Import Failed", str(e))
+
+    def _on_copy_cpp(self) -> None:
+        """12.3: Edit → Copy C++ Snippet."""
+        from PyQt6.QtWidgets import QApplication as _App
+        regions = self._viewer.regions()
+        if not regions:
+            self.statusBar().showMessage("No regions to export.", 3000)
+            return
+        project = self._build_project()
+        cpp = project_to_cpp(project)
+        _App.clipboard().setText(cpp)
+        self.statusBar().showMessage(
+            f"C++ snippet ({len(regions)} sprites) copied to clipboard.  ✓",
+            4000
+        )
 
     def _open_grid_dialog(self) -> None:
         """11.1/11.4: Open GridDialog, show overlay, push results."""
