@@ -405,7 +405,7 @@ class SpriteCanvas(ImageViewer):
 
         result = smart_click_detect(
             self._ai_image, cx, cy,
-            tolerance=20, min_area=16, padding=1,
+            tolerance=20, min_area=16, padding=0,
         )
         if result is None:
             return   # background click — do nothing

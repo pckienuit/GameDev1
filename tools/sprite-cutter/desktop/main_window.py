@@ -735,6 +735,7 @@ class MainWindow(QMainWindow):
                 if ok:
                     self.set_image_path(path)
                     self._add_to_recent(path)
+                    self._set_canvas_ai_image()   # <-- AI mode needs numpy array
                     w, h = self._viewer.image_size()
                     self.statusBar().showMessage(
                         f"Opened: {path.name}  ({w}x{h} px)", 4000
