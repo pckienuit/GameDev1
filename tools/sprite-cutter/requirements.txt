@@ -1,0 +1,25 @@
+# ─── GUI (Desktop App) ───────────────────────────────────────────────────────
+PyQt6>=6.6.0
+
+# ─── Computer Vision ─────────────────────────────────────────────────────────
+opencv-python>=4.9.0
+numpy>=1.26.0
+Pillow>=10.2.0
+
+# ─── AI — MobileSAM (lightweight, ~10MB model) ───────────────────────────────
+# Install from source for latest compatibility:
+# pip install git+https://github.com/ChaoningZhang/MobileSAM.git
+# Or install pre-packaged:
+mobile-sam>=0.3.0
+
+# ─── Web App Backend ─────────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9    # for file uploads in FastAPI
+
+# ─── Utilities ───────────────────────────────────────────────────────────────
+requests>=2.31.0           # for auto-downloading model weights
+tqdm>=4.66.0               # download progress bars
+
+# ─── Development / Testing ───────────────────────────────────────────────────
+pytest>=8.0.0
