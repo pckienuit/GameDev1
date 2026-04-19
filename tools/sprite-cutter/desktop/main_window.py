@@ -27,6 +27,7 @@ from desktop.toolbar import SpriteCutterToolbar, EditorMode
 from desktop.sprite_canvas import SpriteCanvas
 from desktop.sidebar import SidebarWidget
 from desktop.detect_dialog import DetectionDialog
+from desktop.grid_dialog import GridDialog
 
 
 # ── Placeholder widgets (replaced in later phases) ────────────────────────────
@@ -396,6 +397,11 @@ class MainWindow(QMainWindow):
     def _on_mode_changed(self, mode: EditorMode) -> None:
         self._lbl_mode.setText(f"Mode: {mode.name.capitalize()}")
         self._viewer.set_mode(mode)
+        # Clear grid overlay when leaving GRID mode
+        if mode != EditorMode.GRID:
+            self._viewer.set_grid_config(None)
+        elif mode == EditorMode.GRID and self._viewer.has_image():
+            self._open_grid_dialog()
 
     def _on_canvas_region_selected(self, region) -> None:
         """Canvas selected -> update sidebar + enable/disable Delete."""
@@ -420,6 +426,34 @@ class MainWindow(QMainWindow):
             self._viewer.select_region(regions[row])
         else:
             self._viewer.select_region(None)
+
+    def _open_grid_dialog(self) -> None:
+        """11.1/11.4: Open GridDialog, show overlay, push results."""
+        w, h = self._viewer.image_size()
+        dlg = GridDialog(img_w=w, img_h=h, parent=self)
+        # Show initial grid overlay immediately
+        self._viewer.set_grid_config(dlg.current_config())
+
+        if dlg.exec() != GridDialog.DialogCode.Accepted:
+            self._viewer.set_grid_config(None)       # clear on cancel
+            self._toolbar.set_mode(EditorMode.SELECT)
+            self._lbl_mode.setText("Mode: Select")
+            return
+
+        regions = dlg.result_regions()
+        if not regions:
+            self.statusBar().showMessage("Grid produced no regions.", 3000)
+            return
+
+        self._viewer.clear_regions()
+        for r in regions:
+            self._viewer.add_region(r)
+
+        count = len(self._viewer.regions())
+        self.set_sprite_count(count)
+        self._sidebar.refresh_sprites(self._viewer.regions())
+        self.statusBar().showMessage(f"Grid slice: {count} regions added.", 4000)
+        self._viewer.set_grid_config(dlg.current_config())   # keep overlay
 
     def _on_auto_detect(self) -> None:
         """10.1-10.4: Open DetectionDialog and push results to canvas."""

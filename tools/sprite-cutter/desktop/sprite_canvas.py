@@ -26,6 +26,7 @@ from PyQt6.QtGui import (
 from desktop.image_viewer import ImageViewer
 from desktop.toolbar import EditorMode
 from core.models import SpriteRegion
+from core.grid_detector import GridConfig
 
 
 # ── Visual constants ──────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ CLR_DRAW_FILL     = QColor(100, 255, 100, 40)
 CLR_DRAW_BORDER   = QColor(100, 255, 100, 200)
 CLR_HANDLE        = QColor(255, 200,  60, 230)
 CLR_HANDLE_BG     = QColor(20,  20,  40, 200)
+CLR_GRID_LINE     = QColor(255, 120,  60, 160)  # orange grid lines
+CLR_GRID_CELL     = QColor(255, 120,  60,  20)  # very faint cell fill
 
 HANDLE_SIZE  = 8    # screen px
 HIT_SLOP     = 6    # extra px tolerance for clicking near a border
@@ -122,6 +125,9 @@ class SpriteCanvas(ImageViewer):
         # ── Undo stack (simple list of snapshots) ───────────────────────────
         self._undo_stack: list[list[dict]] = []
 
+        # ── Grid-mode overlay state (Phase 11) ──────────────────────────────
+        self._grid_config: Optional[GridConfig] = None
+
     # ── Region management ────────────────────────────────────────────────────
 
     def set_regions(self, regions: list[SpriteRegion]) -> None:
@@ -175,6 +181,11 @@ class SpriteCanvas(ImageViewer):
             self.setCursor(Qt.CursorShape.CrossCursor)
         else:
             self.setCursor(Qt.CursorShape.CrossCursor)
+        self.update()
+
+    def set_grid_config(self, config: Optional[GridConfig]) -> None:
+        """11.1: Set grid overlay config. Pass None to clear."""
+        self._grid_config = config
         self.update()
 
     # ── Undo ──────────────────────────────────────────────────────────────────
@@ -245,11 +256,13 @@ class SpriteCanvas(ImageViewer):
 
     def paintEvent(self, event: QPaintEvent) -> None:
         super().paintEvent(event)           # draw image + grid + crosshair
-        if not self._regions and not self._drawing:
-            return
 
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+
+        # 11.3  Grid overlay when in GRID mode
+        if self._mode == EditorMode.GRID and self._grid_config and self._pixmap:
+            self._paint_grid_overlay(painter)
 
         # Draw each region
         for region in self._regions:
@@ -309,6 +322,62 @@ class SpriteCanvas(ImageViewer):
         # Size label
         painter.setPen(QPen(QColor(200, 255, 200, 230)))
         painter.drawText(sr.adjusted(2, 2, 0, 0), f"{rw}×{rh}")
+
+    # ── 11.3  Grid overlay ────────────────────────────────────────────────────
+
+    def _paint_grid_overlay(self, painter: QPainter) -> None:
+        """Draw uniform grid lines + faint cell fills over the image."""
+        cfg = self._grid_config
+        if not cfg:
+            return
+
+        step_x = cfg.tile_w + cfg.padding
+        step_y = cfg.tile_h + (cfg.padding_y if cfg.padding_y else cfg.padding)
+
+        pen = QPen(CLR_GRID_LINE, 0)   # cosmetic 1-screen-px line
+        painter.setPen(pen)
+
+        # Draw vertical cell boundaries
+        x_img = cfg.offset_x
+        while x_img <= self._img_w:
+            sx = self._image_to_widget(QPointF(x_img, 0)).x()
+            sy0 = self._image_to_widget(QPointF(0, cfg.offset_y)).y()
+            sy1 = self._image_to_widget(QPointF(0, self._img_h)).y()
+            painter.drawLine(QPointF(sx, sy0), QPointF(sx, sy1))
+            x2 = x_img + cfg.tile_w
+            sx2 = self._image_to_widget(QPointF(x2, 0)).x()
+            painter.drawLine(QPointF(sx2, sy0), QPointF(sx2, sy1))
+            x_img += step_x
+
+        # Draw horizontal cell boundaries
+        y_img = cfg.offset_y
+        while y_img <= self._img_h:
+            sy = self._image_to_widget(QPointF(0, y_img)).y()
+            sx0 = self._image_to_widget(QPointF(cfg.offset_x, 0)).x()
+            sx1 = self._image_to_widget(QPointF(self._img_w, 0)).x()
+            painter.drawLine(QPointF(sx0, sy), QPointF(sx1, sy))
+            y2 = y_img + cfg.tile_h
+            sy2 = self._image_to_widget(QPointF(0, y2)).y()
+            painter.drawLine(QPointF(sx0, sy2), QPointF(sx1, sy2))
+            y_img += step_y
+
+        # Faint cell fill
+        painter.setPen(Qt.PenStyle.NoPen)
+        x_img = cfg.offset_x
+        row = 0
+        while x_img + cfg.tile_w <= self._img_w:
+            y_img = cfg.offset_y
+            col = 0
+            while y_img + cfg.tile_h <= self._img_h:
+                if (row + col) % 2 == 0:
+                    tl = self._image_to_widget(QPointF(x_img, y_img))
+                    br = self._image_to_widget(QPointF(x_img + cfg.tile_w,
+                                                       y_img + cfg.tile_h))
+                    painter.fillRect(QRectF(tl, br), CLR_GRID_CELL)
+                y_img += step_y
+                col  += 1
+            x_img += step_x
+            row   += 1
 
     # ── 8.2  Draw mode interactions ───────────────────────────────────────────
 
