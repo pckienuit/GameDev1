@@ -22,7 +22,7 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QAction, QKeySequence, QFont, QColor, QPalette
 
 from desktop.toolbar import SpriteCutterToolbar, EditorMode
-from desktop.image_viewer import ImageViewer
+from desktop.sprite_canvas import SpriteCanvas
 
 
 # ── Placeholder widgets (replaced in later phases) ────────────────────────────
@@ -184,11 +184,13 @@ class MainWindow(QMainWindow):
         self._act_undo = QAction("&Undo", self)
         self._act_undo.setShortcut(QKeySequence.StandardKey.Undo)
         self._act_undo.setEnabled(False)
+        self._act_undo.triggered.connect(lambda: self._viewer.undo())
         edit_menu.addAction(self._act_undo)
 
         self._act_delete = QAction("&Delete Region", self)
         self._act_delete.setShortcut(QKeySequence(Qt.Key.Key_Delete))
         self._act_delete.setEnabled(False)
+        self._act_delete.triggered.connect(lambda: self._viewer.delete_selected())
         edit_menu.addAction(self._act_delete)
 
         edit_menu.addSeparator()
@@ -244,17 +246,17 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # 7.1  Real image viewer (replaces placeholder canvas)
-        self._viewer = ImageViewer()
+        # 8.1  SpriteCanvas (ImageViewer + region overlay)
+        self._viewer = SpriteCanvas()
         self._viewer.pixel_hovered.connect(
-            lambda x, y: (
-                self.set_cursor_coords(x, y),
-            )
+            lambda x, y: self.set_cursor_coords(x, y)
         )
         self._viewer.pixel_left_image.connect(self.clear_cursor_coords)
-        self._viewer.zoom_changed.connect(
-            lambda z: self.set_zoom(z)
+        self._viewer.zoom_changed.connect(self.set_zoom)
+        self._viewer.regions_changed.connect(
+            lambda: self.set_sprite_count(len(self._viewer.regions()))
         )
+        self._viewer.region_selected.connect(self._on_region_selected)
         layout.addWidget(self._viewer)
 
         # Sidebar (right, fixed width — replaced in Phase 9)
@@ -353,6 +355,12 @@ class MainWindow(QMainWindow):
 
     def _on_mode_changed(self, mode: EditorMode) -> None:
         self._lbl_mode.setText(f"Mode: {mode.name.capitalize()}")
+        self._viewer.set_mode(mode)
+
+    def _on_region_selected(self, region) -> None:
+        """Enable/disable Delete when a region is selected."""
+        self._act_delete.setEnabled(region is not None)
+        self._act_undo.setEnabled(True)
 
     def _on_about(self) -> None:
         try:
