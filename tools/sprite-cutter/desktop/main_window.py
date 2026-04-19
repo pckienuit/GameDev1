@@ -23,6 +23,7 @@ from PyQt6.QtGui import QAction, QKeySequence, QFont, QColor, QPalette
 
 from desktop.toolbar import SpriteCutterToolbar, EditorMode
 from desktop.sprite_canvas import SpriteCanvas
+from desktop.sidebar import SidebarWidget
 
 
 # ── Placeholder widgets (replaced in later phases) ────────────────────────────
@@ -253,15 +254,26 @@ class MainWindow(QMainWindow):
         )
         self._viewer.pixel_left_image.connect(self.clear_cursor_coords)
         self._viewer.zoom_changed.connect(self.set_zoom)
-        self._viewer.regions_changed.connect(
-            lambda: self.set_sprite_count(len(self._viewer.regions()))
-        )
-        self._viewer.region_selected.connect(self._on_region_selected)
+        self._viewer.regions_changed.connect(self._on_regions_changed)
+        self._viewer.region_selected.connect(self._on_canvas_region_selected)
+        self._viewer.region_added.connect(self._on_regions_changed)
         layout.addWidget(self._viewer)
 
-        # Sidebar (right, fixed width — replaced in Phase 9)
-        self._sidebar_placeholder = _PlaceholderSidebar()
-        layout.addWidget(self._sidebar_placeholder)
+        # 9.5  Real sidebar (replaces placeholder)
+        self._sidebar = SidebarWidget()
+        self._sidebar.sprite_list_selection_changed.connect(
+            self._on_sidebar_row_selected
+        )
+        self._sidebar.properties_changed.connect(
+            lambda _: (
+                self._viewer.update(),
+                self._sidebar.refresh_sprites(self._viewer.regions()),
+            )
+        )
+        self._sidebar.groups_changed.connect(
+            lambda: None   # Phase 10 will persist to SpriteProject
+        )
+        layout.addWidget(self._sidebar)
 
     # ── 6.4  Status bar ───────────────────────────────────────────────────────
 
@@ -357,10 +369,29 @@ class MainWindow(QMainWindow):
         self._lbl_mode.setText(f"Mode: {mode.name.capitalize()}")
         self._viewer.set_mode(mode)
 
-    def _on_region_selected(self, region) -> None:
-        """Enable/disable Delete when a region is selected."""
+    def _on_canvas_region_selected(self, region) -> None:
+        """Canvas selected -> update sidebar + enable/disable Delete."""
         self._act_delete.setEnabled(region is not None)
         self._act_undo.setEnabled(True)
+        self._sidebar.select_sprite(region, self._viewer.regions())
+
+    def _on_region_selected(self, region) -> None:
+        """Alias kept for backward compatibility."""
+        self._on_canvas_region_selected(region)
+
+    def _on_regions_changed(self, *_) -> None:
+        """Any CRUD change -> refresh sidebar list + status bar count."""
+        regions = self._viewer.regions()
+        self.set_sprite_count(len(regions))
+        self._sidebar.refresh_sprites(regions)
+
+    def _on_sidebar_row_selected(self, row: int) -> None:
+        """Sidebar list click -> select region on canvas."""
+        regions = self._viewer.regions()
+        if 0 <= row < len(regions):
+            self._viewer.select_region(regions[row])
+        else:
+            self._viewer.select_region(None)
 
     def _on_about(self) -> None:
         try:
