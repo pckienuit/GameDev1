@@ -79,9 +79,13 @@ class MainWindow(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
-        self._image_path: Optional[Path] = None
-        self._sprite_count: int = 0
-        self._zoom_level: float = 1.0
+        self._image_path:    Optional[Path]  = None
+        self._sprite_count:  int             = 0
+        self._zoom_level:    float           = 1.0
+        self._recent_paths:  list[Path]      = []   # 13.3 recent files
+        self._MAX_RECENT     = 5
+
+        self.setAcceptDrops(True)   # 13.1 drag-and-drop
 
         self._setup_window()
         self._setup_palette()
@@ -167,6 +171,11 @@ class MainWindow(QMainWindow):
 
         file_menu.addSeparator()
 
+        # 13.3  Recent files
+        self._recent_menu = file_menu.addMenu("Recent Files")
+        self._recent_menu.setEnabled(False)
+        file_menu.addSeparator()
+
         self._act_export = QAction("&Export JSON…", self)
         self._act_export.setShortcut(QKeySequence("Ctrl+S"))
         self._act_export.setStatusTip("Export sprite data to JSON")
@@ -235,20 +244,43 @@ class MainWindow(QMainWindow):
         )
         detect_menu.addAction(self._act_clear_all)
 
-        # ── View ──────────────────────────────────────────────────────────────
+        # ── View ────────────────────────────────────────────────────────────
         view_menu = mb.addMenu("&View")
 
         act_zoom_in = QAction("Zoom &In", self)
-        act_zoom_in.setShortcut(QKeySequence(Qt.Key.Key_Plus))
+        act_zoom_in.setShortcut(QKeySequence("Ctrl+="))
+        act_zoom_in.setStatusTip("Zoom in (+25%)")
+        act_zoom_in.triggered.connect(lambda: self._viewer.zoom_by(1.25))
         view_menu.addAction(act_zoom_in)
 
         act_zoom_out = QAction("Zoom &Out", self)
-        act_zoom_out.setShortcut(QKeySequence(Qt.Key.Key_Minus))
+        act_zoom_out.setShortcut(QKeySequence("Ctrl+-"))
+        act_zoom_out.setStatusTip("Zoom out (-25%)")
+        act_zoom_out.triggered.connect(lambda: self._viewer.zoom_by(0.8))
         view_menu.addAction(act_zoom_out)
 
         act_fit = QAction("&Fit to Window", self)
         act_fit.setShortcut(QKeySequence("Ctrl+0"))
+        act_fit.setStatusTip("Fit image to window")
+        act_fit.triggered.connect(lambda: self._viewer.fit_to_window())
         view_menu.addAction(act_fit)
+
+        act_1to1 = QAction("&1:1 Actual Size", self)
+        act_1to1.setShortcut(QKeySequence("Ctrl+1"))
+        act_1to1.setStatusTip("Reset zoom to 100%")
+        act_1to1.triggered.connect(lambda: self._viewer.set_zoom(1.0))
+        view_menu.addAction(act_1to1)
+
+        view_menu.addSeparator()
+
+        self._act_pixel_grid = QAction("Show &Pixel Grid", self)
+        self._act_pixel_grid.setShortcut(QKeySequence("Ctrl+G"))
+        self._act_pixel_grid.setCheckable(True)
+        self._act_pixel_grid.setChecked(True)
+        self._act_pixel_grid.triggered.connect(
+            lambda checked: self._viewer.set_pixel_grid(checked)
+        )
+        view_menu.addAction(self._act_pixel_grid)
 
         # ── Help ──────────────────────────────────────────────────────────────
         help_menu = mb.addMenu("&Help")
@@ -339,6 +371,8 @@ class MainWindow(QMainWindow):
     # ── Keyboard shortcuts (modes: 1-4) ───────────────────────────────────────
 
     def _setup_shortcuts(self) -> None:
+        """13 — all additional keyboard shortcuts."""
+        # Mode switching: 1-4
         mode_keys = {
             Qt.Key.Key_1: EditorMode.SELECT,
             Qt.Key.Key_2: EditorMode.DRAW,
@@ -350,6 +384,28 @@ class MainWindow(QMainWindow):
             act.setShortcut(QKeySequence(key))
             act.triggered.connect(lambda _, m=mode: self._toolbar.set_mode(m))
             self.addAction(act)
+
+        # Zoom: + / - (numpad and regular keys)
+        for shortcut, factor in [
+            ("=", 1.25), ("+", 1.25),   # zoom in
+            ("-", 0.8),                  # zoom out
+        ]:
+            act = QAction(self)
+            act.setShortcut(QKeySequence(shortcut))
+            act.triggered.connect(lambda _, f=factor: self._viewer.zoom_by(f))
+            self.addAction(act)
+
+        # Fit to window: F
+        act_f = QAction(self)
+        act_f.setShortcut(QKeySequence(Qt.Key.Key_F))
+        act_f.triggered.connect(lambda: self._viewer.fit_to_window())
+        self.addAction(act_f)
+
+        # Undo: Ctrl+Z (extra binding in case menu shortcut conflicts)
+        act_z = QAction(self)
+        act_z.setShortcut(QKeySequence("Ctrl+Z"))
+        act_z.triggered.connect(lambda: self._viewer.undo())
+        self.addAction(act_z)
 
     # ── Public API (used by later phases) ─────────────────────────────────────
 
@@ -635,10 +691,82 @@ class MainWindow(QMainWindow):
             self.setWindowTitle("SpriteCutter")
 
     def _update_statusbar(self) -> None:
-        if self._image_path:
+        if self._image_path and self._viewer.has_image():
+            w, h = self._viewer.image_size()
+            self._lbl_image.setText(f"{self._image_path.name}  ({w}x{h})")
+        elif self._image_path:
             self._lbl_image.setText(self._image_path.name)
         else:
             self._lbl_image.setText("No image")
+
+    # ── 13.1  Drag and Drop ──────────────────────────────────────────────────
+
+    def dragEnterEvent(self, event) -> None:    # type: ignore[override]
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if any(
+                u.toLocalFile().lower().endswith(
+                    ('.png','.bmp','.jpg','.jpeg','.gif','.tga','.webp')
+                ) for u in urls
+            ):
+                event.acceptProposedAction()
+                return
+        event.ignore()
+
+    def dropEvent(self, event) -> None:         # type: ignore[override]
+        for url in event.mimeData().urls():
+            path = Path(url.toLocalFile())
+            if path.suffix.lower() in {'.png','.bmp','.jpg','.jpeg','.gif','.tga','.webp'}:
+                ok = self._viewer.load_image(path)
+                if ok:
+                    self.set_image_path(path)
+                    self._add_to_recent(path)
+                    w, h = self._viewer.image_size()
+                    self.statusBar().showMessage(
+                        f"Opened: {path.name}  ({w}x{h} px)", 4000
+                    )
+                break
+        event.acceptProposedAction()
+
+    # ── 13.3  Recent Files ──────────────────────────────────────────────────
+
+    def _add_to_recent(self, path: Path) -> None:
+        if path in self._recent_paths:
+            self._recent_paths.remove(path)
+        self._recent_paths.insert(0, path)
+        self._recent_paths = self._recent_paths[:self._MAX_RECENT]
+        self._rebuild_recent_menu()
+
+    def _rebuild_recent_menu(self) -> None:
+        self._recent_menu.clear()
+        if not self._recent_paths:
+            self._recent_menu.setEnabled(False)
+            return
+        self._recent_menu.setEnabled(True)
+        for p in self._recent_paths:
+            act = self._recent_menu.addAction(p.name)
+            act.setStatusTip(str(p))
+            act.triggered.connect(lambda _, path=p: self._open_recent(path))
+        self._recent_menu.addSeparator()
+        clr = self._recent_menu.addAction("Clear Recent")
+        clr.triggered.connect(self._clear_recent)
+
+    def _open_recent(self, path: Path) -> None:
+        if not path.exists():
+            self.statusBar().showMessage(f"File not found: {path}", 4000)
+            self._recent_paths.remove(path)
+            self._rebuild_recent_menu()
+            return
+        ok = self._viewer.load_image(path)
+        if ok:
+            self.set_image_path(path)
+            self._add_to_recent(path)
+            w, h = self._viewer.image_size()
+            self.statusBar().showMessage(f"Opened: {path.name}  ({w}x{h} px)", 4000)
+
+    def _clear_recent(self) -> None:
+        self._recent_paths.clear()
+        self._rebuild_recent_menu()
 
 
 def _sep() -> QLabel:

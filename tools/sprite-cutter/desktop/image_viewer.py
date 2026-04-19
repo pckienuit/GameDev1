@@ -67,6 +67,7 @@ class ImageViewer(QWidget):
         self._cursor_img:  Optional[tuple[int, int]] = None   # (px, py) or None
 
         # ── Styling ───────────────────────────────────────────────────────────
+        self._pixel_grid_visible: bool = True   # 13.5 toggleable
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -139,12 +140,26 @@ class ImageViewer(QWidget):
     def zoom_out(self) -> None:
         self.set_zoom(self._zoom / (1 + ZOOM_STEP))
 
+    def zoom_by(self, factor: float) -> None:
+        """Multiply current zoom by factor (e.g. 1.25 = +25%)."""
+        self.set_zoom(self._zoom * factor)
+
+    def fit_to_window(self) -> None:
+        """Alias for fit_in_view — for MainWindow action wiring."""
+        self._fit_in_view()
+        self.update()
+
     def fit_in_view(self) -> None:
         self._fit_in_view()
         self.update()
 
     def zoom_to_100(self) -> None:
         self.set_zoom(1.0)
+
+    def set_pixel_grid(self, visible: bool) -> None:
+        """Toggle pixel grid overlay (only shows above GRID_ZOOM_THRESH anyway)."""
+        self._pixel_grid_visible = visible
+        self.update()
 
     # ── 7.3  Pan ──────────────────────────────────────────────────────────────
 
@@ -237,7 +252,7 @@ class ImageViewer(QWidget):
         painter.drawPixmap(img_rect.toRect(), self._pixmap)
 
         # 7.4 Pixel grid
-        if self._zoom >= GRID_ZOOM_THRESH:
+        if self._pixel_grid_visible and self._zoom >= GRID_ZOOM_THRESH:
             self._draw_pixel_grid(painter, img_rect)
 
         # 7.5 Crosshair
