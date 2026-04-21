@@ -50,8 +50,8 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::GoombaDead,  "assets/enemies.png", 45, 21, 16,  8);
 
     // Koopa — enemies.png
-    _sprite_sheet.Define(SpriteID::KoopaWalk0, "assets/enemies.png",  5, 130, 16, 28);
-    _sprite_sheet.Define(SpriteID::KoopaWalk1, "assets/enemies.png", 28, 130, 16, 28);
+    _sprite_sheet.Define(SpriteID::KoopaWalk0, "assets/enemies.png",  6, 130, 16, 26);
+    _sprite_sheet.Define(SpriteID::KoopaWalk1, "assets/enemies.png", 28, 130, 16, 26);
     _sprite_sheet.Define(SpriteID::KoopaDead,  "assets/enemies.png", 50, 139, 16, 16);
     _sprite_sheet.Define(SpriteID::KoopaShell, "assets/enemies.png", 70, 139, 16, 16);
 
@@ -78,6 +78,11 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::Heart, "assets/misc.png", 596, 192, 10, 10);
 
     // -----------------------------------------------------------------------
+
+    _coin_anim = Animation(_sprite_sheet, {SpriteID::Coin0, 
+                                          SpriteID::Coin1,
+                                          SpriteID::Coin2}, 0.3f, true);
+    
 
     _tilemap.LoadFromFile("assets/level1.txt");
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()),
@@ -220,10 +225,11 @@ void Game::Render() {
         }
 
         // Coins
+        const Sprite& coin_sprite = _coin_anim.Update(DT);
         for (const auto& coin : _coins) {
             if (coin.x < -9000.0f) continue;
             _sprite_batch.Draw(coin.x, coin.y, coin.w, coin.h,
-                               _sprite_sheet.Get(SpriteID::Coin0), 1.0f, 1.0f, 0.0f, 1.0f);
+                               coin_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
         }
 
         // Enemies

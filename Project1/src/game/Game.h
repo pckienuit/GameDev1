@@ -72,4 +72,5 @@ private:
 
     // Coins
     std::vector<AABB>     _coins;
+    Animation             _coin_anim;
 };
