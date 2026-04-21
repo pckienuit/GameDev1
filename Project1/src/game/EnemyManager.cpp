@@ -261,3 +261,13 @@ int EnemyManager::PopScore() {
     _pending_score = 0;
     return s;
 }
+
+void EnemyManager::ClearAll() {
+    for (auto& e : _enemies) {
+        if (e.active) {
+            _em.Destroy(e.id);
+            e.active = false;
+        }
+    }
+    _pending_score = 0;
+}

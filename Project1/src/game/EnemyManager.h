@@ -20,7 +20,8 @@ public:
     void RenderAll(SpriteBatch& sprite_batch, float dt);
 
     int ActiveCount() const;
-    int PopScore();   // drain accumulated score since last call
+    int PopScore();    // drain accumulated score since last call
+    void ClearAll();   // deactivate all enemies (call on level load)
 
 private:
     std::vector<Enemy> _enemies;

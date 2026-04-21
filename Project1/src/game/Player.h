@@ -42,6 +42,9 @@ public:
     float GetVelX() const { return _vel_x; }
     float GetVelY() const { return _vel_y; }
 
+    // Teleport player to a new position and reset velocity (used on level load)
+    void SetPosition(float x, float y);
+
     void Hurt();
     void Bounce(float bounce_height) { _vel_y = bounce_height; }
 

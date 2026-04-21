@@ -31,3 +31,9 @@ void Camera::Clamp(float world_w, float world_h) {
     _x = std::clamp(_x, 0.0f, world_w - _viewport_w);
     _y = std::clamp(_y, 0.0f, world_h - _viewport_h);
 }
+
+void Camera::Reset() {
+    _x = 0.0f;
+    _y = 0.0f;
+}
+

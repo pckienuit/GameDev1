@@ -149,6 +149,7 @@
     <ClCompile Include="src\game\Enemy.cpp" />
     <ClCompile Include="src\game\EnemyManager.cpp" />
     <ClCompile Include="src\game\Game.cpp" />
+    <ClCompile Include="src\game\LevelManager.cpp" />
     <ClCompile Include="src\game\Player.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
@@ -177,6 +178,8 @@
     <ClInclude Include="src\game\Enemy.h" />
     <ClInclude Include="src\game\EnemyManager.h" />
     <ClInclude Include="src\game\Game.h" />
+    <ClInclude Include="src\game\LevelDef.h" />
+    <ClInclude Include="src\game\LevelManager.h" />
     <ClInclude Include="src\game\Player.h" />
     <ClInclude Include="src\renderer\Animation.h" />
     <ClInclude Include="src\renderer\Camera.h" />

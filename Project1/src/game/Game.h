@@ -15,6 +15,7 @@
 #include "Player.h"
 #include "EnemyManager.h"
 #include "../renderer/ScoreRenderer.h"
+#include "LevelManager.h"
 #include "../collision/AABB.h"
 
 class Game {
@@ -25,11 +26,12 @@ public:
     bool Update();
     void Render();
 
+    // Load/reload a level: clears state, loads map, spawns entities
+    void LoadLevel(const LevelDef& level);
+
 private:
-    static constexpr float DT = static_cast<float>(GameLoop::FIXED_DT);
-    static constexpr int WORLD_W = 2560;
-    static constexpr int WORLD_H = 240;
-    static constexpr int CELL_SIZE = 32;
+    static constexpr float DT        = static_cast<float>(GameLoop::FIXED_DT);
+    static constexpr int   CELL_SIZE  = 32;
     static constexpr int MAX_EVENTS = 1024;
 
     Window                _window;
@@ -44,6 +46,13 @@ private:
     SpriteSheet           _sprite_sheet;  // central sprite registry
 
     ScoreRenderer         _score_renderer;  // reads from _sprite_sheet
+
+    LevelManager          _level_manager;
+
+    // Per-level background color (set by LoadLevel)
+    float                 _bg_r = 0.40f;
+    float                 _bg_g = 0.60f;
+    float                 _bg_b = 1.00f;
 
     int                   _score = 0;
     bool                  _prev_grounded   = true;

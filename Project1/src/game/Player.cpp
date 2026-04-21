@@ -268,3 +268,16 @@ bool Player::ShouldRender() const {
     if (_inv_timer <= 0.0f) return true;
     return static_cast<int>(_inv_timer / 0.1f) % 2 == 0;
 }
+
+void Player::SetPosition(float x, float y) {
+    _pos_x       = x;
+    _pos_y       = y;
+    _vel_x       = 0.0f;
+    _vel_y       = 0.0f;
+    _is_grounded = false;
+    _is_dead     = false;
+    _inv_timer   = 0.0f;
+    _game_over   = false;
+    _coyote_timer      = 0.0f;
+    _jump_buffer_timer = 0.0f;
+}

@@ -7,6 +7,8 @@ public:
     void Follow(float target_x, float target_y, float dt);
 
     void Clamp(float world_w, float world_h);
+    void Reset();  // snap to origin on level load
+
 
     float GetX() const { return _x; }
     float GetY() const { return _y; }

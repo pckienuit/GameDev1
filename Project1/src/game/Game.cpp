@@ -8,7 +8,7 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _score_renderer(_sprite_sheet),
                 _entity_manager(),
                 _tilemap(0, 0, 0),
-                _collision_system(WORLD_W, WORLD_H, CELL_SIZE, MAX_EVENTS),
+                _collision_system(0, 0, CELL_SIZE, MAX_EVENTS),
                 _camera(800.0f, 600.0f),
                 _player(200.0f, 100.0f, _sprite_sheet, _entity_manager),
                 _dummy_id(_entity_manager.Create()),
@@ -81,33 +81,60 @@ Game::Game() : _window("Mario Engine", 800, 600),
 
     // -----------------------------------------------------------------------
 
-    _coin_anim = Animation(_sprite_sheet, {SpriteID::Coin0, 
+    _coin_anim = Animation(_sprite_sheet, {SpriteID::Coin0,
                                           SpriteID::Coin1,
                                           SpriteID::Coin2}, 0.3f, true);
-    
 
-    _tilemap.LoadFromFile("assets/level1.txt");
+    // Load first level
+    LoadLevel(_level_manager.GetCurrent());
+}
+
+void Game::LoadLevel(const LevelDef& level) {
+    // ---- Clear dynamic state ----
+    _enemy_manager.ClearAll();
+    _coins.clear();
+    _flag_aabb = { -9999.0f, 0.0f, 0.0f, 0.0f };
+
+    // ---- Reset level-transition state ----
+    _is_won          = false;
+    _win_timer       = -1.0f;
+    _game_over_timer = -1.0f;
+    _fade_state      = FadeState::FadeIn;
+    _fade_alpha      = 1.0f;
+
+    // ---- Background color ----
+    _bg_r = level.bg_r;
+    _bg_g = level.bg_g;
+    _bg_b = level.bg_b;
+
+    // ---- Reset player position (keep score & lives) ----
+    _player.SetPosition(level.player_start_x, level.player_start_y);
+
+    // ---- Reset camera ----
+    _camera.Reset();
+
+    // ---- Load tilemap ----
+    _tilemap.LoadFromFile(level.map_file);
     _collision_system.Resize(static_cast<int>(_tilemap.GetWidth()),
                              static_cast<int>(_tilemap.GetHeight()), CELL_SIZE);
 
+    // ---- Spawn entities from map ----
+    constexpr float FLAG_W = 96.0f;
+    constexpr float FLAG_H = 96.0f;
+    constexpr float COIN_W = 32.0f;
+    constexpr float COIN_H = 32.0f;
+
     for (const SpawnInfo& spawn : _tilemap.GetSpawnPoints()) {
+        const float sx = static_cast<float>(spawn.x);
+        const float sy = static_cast<float>(spawn.y);
         if (spawn.token == 'G') {
-            _enemy_manager.Spawn(EnemyDef::GOOMBA, _sprite_sheet,
-                                 static_cast<float>(spawn.x), static_cast<float>(spawn.y));
-        }
-        if (spawn.token == 'K') {
-            _enemy_manager.Spawn(EnemyDef::KOOPA, _sprite_sheet,
-                                 static_cast<float>(spawn.x), static_cast<float>(spawn.y));
-        }
-        if (spawn.token == 'F') {
-            constexpr float FLAG_W = 96.0f;
-            constexpr float FLAG_H = 96.0f;
-            _flag_aabb = { static_cast<float>(spawn.x), static_cast<float>(spawn.y), FLAG_W, FLAG_H };
-        }
-        if (spawn.token == 'C') {
-            constexpr float COIN_W = 32.0f;
-            constexpr float COIN_H = 32.0f;
-            _coins.push_back({ static_cast<float>(spawn.x), static_cast<float>(spawn.y), COIN_W, COIN_H });
+            _enemy_manager.Spawn(EnemyDef::GOOMBA, _sprite_sheet, sx, sy);
+        } else if (spawn.token == 'K') {
+            _enemy_manager.Spawn(EnemyDef::KOOPA, _sprite_sheet, sx, sy);
+        } else if (spawn.token == 'F') {
+            _flag_aabb = { sx, sy, FLAG_W, FLAG_H };
+        } else if (spawn.token == 'C') {
+            _coins.push_back({ sx, sy, COIN_W, COIN_H });
         }
     }
 }
@@ -139,13 +166,20 @@ bool Game::Update() {
     }
     _prev_game_over = game_over_now;
 
-    // Win delay: freeze gameplay, wait 2s then quit
+    // Win delay: freeze gameplay, wait 2s then fade → next level or quit
     if (_is_won) {
         _win_timer -= real_dt;
         if (_win_timer <= 0.0f) {
             if (_fade_state != FadeState::FadeOut && _fade_state != FadeState::Done)
                 _fade_state = FadeState::FadeOut;
-            if (_fade_state == FadeState::Done) return false;
+            if (_fade_state == FadeState::Done) {
+                if (_level_manager.HasNextLevel()) {
+                    _level_manager.NextLevel();
+                    LoadLevel(_level_manager.GetCurrent());
+                    return true;  // keep running with new level
+                }
+                return false;  // last level complete → quit (Phase 5: Victory screen)
+            }
         }
         return true;  // keep rendering the winning frame
     }
@@ -233,7 +267,7 @@ bool Game::Update() {
 }
 
 void Game::Render() {
-    _renderer.BeginFrame(0.1f, 0.1f, 0.2f);
+    _renderer.BeginFrame(_bg_r, _bg_g, _bg_b);
     _sprite_batch.Begin(800.0f, 600.0f, _camera.GetX(), _camera.GetY());
 
         // Dummy block
