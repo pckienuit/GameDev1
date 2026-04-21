@@ -49,8 +49,10 @@ bool Tilemap::LoadFromFile(const std::string& path) {
 }
 
 bool Tilemap::IsSolid(int col, int row) const {
-    if (col < 0 || col >= _cols || row < 0 || row >= _rows) return false;
-    return _tiles[row*_cols + col].type == TileType::Ground || _tiles[row*_cols + col].type == TileType::Brick;
+    if (col < 0 || col >= _cols || row < 0 || row >= _rows) return true;
+    TileType type = _tiles[row * _cols + col].type;
+    return type == TileType::Ground || type == TileType::Brick || 
+           type == TileType::QBlock || type == TileType::Pipe;
 }
 
 bool Tilemap::IsOneWay(int col, int row) const {

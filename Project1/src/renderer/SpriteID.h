@@ -3,8 +3,14 @@
 enum class SpriteID : int {
     // Tilemap
     BrickTile,
+    GroundTile,
+    QBlockTile0, QBlockTile1,
+    PipeTL, PipeTR, PipeL, PipeR,
 
-    // Player
+    // Decorations
+    Cloud, Bush, Hill,
+    
+    // Entities
     MarioIdle,
     MarioWalk0, MarioWalk1, MarioWalk2,  // 3 walk frames
     MarioJump,

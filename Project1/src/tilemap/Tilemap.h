@@ -5,10 +5,12 @@
 #include <cctype>   
 
 enum class TileType : uint8_t {
-    Empty  = 0,
-    Ground = 1,
-    Brick  = 2,
-    OneWay = 3,
+    Empty   = 0,
+    Ground  = 1,
+    Brick   = 2,
+    OneWay  = 3,
+    QBlock  = 4,   // Question block (solid)
+    Pipe    = 5,   // Pipe segment (solid)
 };
 
 struct Tile {

@@ -37,8 +37,14 @@ Game::Game() : _window("Mario Engine", 800, 600),
     // -----------------------------------------------------------------------
 
     // Tilemap
-    _sprite_sheet.Define(SpriteID::BrickTile, "assets/brick.png", 0, 0, 16, 16);
-
+    _sprite_sheet.Define(SpriteID::BrickTile,  "assets/misc.png", 273, 9, 16, 16);
+    _sprite_sheet.Define(SpriteID::GroundTile, "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::QBlockTile0,"assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PipeTL,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PipeTR,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PipeL,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PipeR,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    
     // Player — mario.png
     _sprite_sheet.Define(SpriteID::MarioIdle,  "assets/mario.png", 245, 154, 16, 26);
     _sprite_sheet.Define(SpriteID::MarioWalk0, "assets/mario.png", 275, 154, 16, 26);
@@ -295,12 +301,17 @@ void Game::Render() {
         for (int row = 0; row < _tilemap.GetRows(); ++row) {
             for (int col = 0; col < _tilemap.GetCols(); ++col) {
                 const auto& tile = _tilemap.GetTile(col, row);
-                if (tile.type != TileType::Empty) {
-                    int t_size  = _tilemap.GetTileSize();
-                    _sprite_batch.Draw(col * t_size, row * t_size,
-                                       static_cast<float>(t_size), static_cast<float>(t_size),
-                                       _sprite_sheet.Get(SpriteID::BrickTile), 1.0f, 1.0f, 1.0f, 1.0f);
-                }
+                if (tile.type == TileType::Empty) continue;
+
+                SpriteID sid = SpriteID::BrickTile;
+                if (tile.type == TileType::Ground) sid = SpriteID::GroundTile;
+                else if (tile.type == TileType::QBlock) sid = SpriteID::QBlockTile0;
+                else if (tile.type == TileType::Pipe) sid = SpriteID::PipeTL; // Simplified for now
+
+                int t_size = _tilemap.GetTileSize();
+                _sprite_batch.Draw(col * t_size, row * t_size,
+                                   static_cast<float>(t_size), static_cast<float>(t_size),
+                                   _sprite_sheet.Get(sid), 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
 
