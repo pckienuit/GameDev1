@@ -280,4 +280,10 @@ void Player::SetPosition(float x, float y) {
     _game_over   = false;
     _coyote_timer      = 0.0f;
     _jump_buffer_timer = 0.0f;
-}
+}
+
+void Player::FullReset(float x, float y) {
+    SetPosition(x, y);
+    _lives = STARTING_LIVES;
+}
+

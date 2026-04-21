@@ -40,3 +40,39 @@ void ScoreRenderer::DrawLives(SpriteBatch& batch, int lives,
                DIGIT_W * DIGIT_SCALE, digit_scaled_h,
                _sheet.Get(id), 1.0f, 1.0f, 1.0f, 1.0f);
 }
+
+void ScoreRenderer::DrawText(SpriteBatch& batch, const std::string& text,
+                              float screen_x, float screen_y,
+                              float cam_x, float cam_y, float scale) const {
+    float cursor_x = cam_x + screen_x;
+    float cursor_y = cam_y + screen_y;
+    const float char_w = DIGIT_W * scale;
+    const float char_h = DIGIT_H * scale;
+    const float gap    = DIGIT_DGAP * (scale / DIGIT_SCALE);
+
+    for (size_t i = 0; i < text.size(); ++i) {
+        char ch = text[i];
+
+        if (ch == ' ') {
+            cursor_x += char_w + gap;
+            continue;
+        }
+
+        SpriteID id = SpriteID::Count; // invalid sentinel
+
+        if (ch >= 'A' && ch <= 'Z') {
+            id = static_cast<SpriteID>(static_cast<int>(SpriteID::LetterA) + (ch - 'A'));
+        } else if (ch >= 'a' && ch <= 'z') {
+            id = static_cast<SpriteID>(static_cast<int>(SpriteID::LetterA) + (ch - 'a'));
+        } else if (ch >= '0' && ch <= '9') {
+            id = static_cast<SpriteID>(static_cast<int>(SpriteID::Digit0) + (ch - '0'));
+        }
+
+        if (id != SpriteID::Count && _sheet.Has(id)) {
+            batch.Draw(cursor_x, cursor_y, char_w, char_h,
+                       _sheet.Get(id), 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        cursor_x += char_w + gap;
+    }
+}

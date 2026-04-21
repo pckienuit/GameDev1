@@ -1,4 +1,5 @@
 #include "EnemyManager.h"
+#include <cmath>
 
 EnemyManager::EnemyManager(EntityManager& em)
     : _em(em)

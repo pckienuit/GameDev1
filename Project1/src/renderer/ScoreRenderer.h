@@ -14,6 +14,11 @@ public:
     void DrawLives(SpriteBatch& batch, int lives, float screen_x, float screen_y,
                    float cam_x, float cam_y) const;
 
+    // Bitmap text: supports A-Z, 0-9, space
+    void DrawText(SpriteBatch& batch, const std::string& text,
+                  float screen_x, float screen_y,
+                  float cam_x, float cam_y, float scale = 2.5f) const;
+
 private:
     static constexpr int   DIGIT_W     = 8;
     static constexpr int   DIGIT_H     = 14;

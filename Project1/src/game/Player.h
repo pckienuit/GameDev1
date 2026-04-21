@@ -54,6 +54,9 @@ public:
     int   GetLives()     const { return _lives; }
     bool  ShouldRender() const;          // blink
 
+    // Full reset for new game (Title → Play): restores lives + clears game_over
+    void  FullReset(float x, float y);
+
 private:
     EntityID _id;
 

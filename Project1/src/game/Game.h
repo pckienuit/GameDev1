@@ -19,6 +19,19 @@
 #include "../collision/AABB.h"
 #include "../renderer/Background.h"
 
+// -----------------------------------------------------------------------
+// Game State Machine
+// -----------------------------------------------------------------------
+enum class GameState {
+    Title,          // "MARIO GAME" + "PRESS ENTER TO START"
+    LevelIntro,     // "WORLD X" countdown
+    Playing,        // gameplay
+    Dying,          // death animation running
+    GameOver,       // "GAME OVER" + "PRESS ENTER TO RETRY"
+    LevelComplete,  // win transition (fade out → next level)
+    Victory,        // "YOU WIN" + final score
+};
+
 class Game {
 public:
     Game();
@@ -60,12 +73,11 @@ private:
     int                   _score = 0;
     bool                  _prev_grounded   = true;
     bool                  _prev_hurt       = false;
-    bool                  _prev_game_over  = false;
-    float                 _game_over_timer = -1.0f;
 
-    // Win state
-    bool                  _is_won          = false;
-    float                 _win_timer       = -1.0f;  // countdown before quit
+    // --- State machine ---
+    GameState             _state       = GameState::Title;
+    float                 _state_timer = 0.0f;
+    bool                  _die_sound_played = false;
 
     EntityManager         _entity_manager;
     Tilemap               _tilemap;
@@ -86,11 +98,24 @@ private:
     std::vector<AABB>     _coins;
     Animation             _coin_anim;
 
-    //Fade state
-    enum class FadeState { FadeIn, Playing, FadeOut, Done};
+    // Fade overlay
     Texture               _fade_texture;
     Sprite                _fade_sprite;
-    FadeState             _fade_state = FadeState::FadeIn;
     float                 _fade_alpha = 1.0f;
     static constexpr float FADE_SPEED = 1.5f;
+
+    // State-specific update helpers
+    void UpdateTitle(float real_dt);
+    void UpdateLevelIntro(float real_dt);
+    void UpdatePlaying(float real_dt);
+    void UpdateDying(float real_dt);
+    void UpdateGameOver(float real_dt);
+    void UpdateLevelComplete(float real_dt);
+    void UpdateVictory(float real_dt);
+
+    // State-specific render helpers
+    void RenderWorld();
+    void RenderHUD();
+    void RenderFade();
+    void RenderCenteredText(const std::string& text, float y, float scale = 3.5f);
 };
