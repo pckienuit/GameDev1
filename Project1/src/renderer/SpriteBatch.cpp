@@ -97,6 +97,8 @@ void SpriteBatch::Draw(float x, float y, float w, float h,
                        float r, float g, float b, float a,
                        bool flip_x) {
  
+    if (!sprite.texture) return; // safeguard
+
     bool texture_changed = (_current_srv != nullptr && 
                             _current_srv != sprite.texture->GetSRV());
     if (_vertices.size() + NUM_VERTICES_PER_SPRITE > MAX_SPRITES*NUM_VERTICES_PER_SPRITE

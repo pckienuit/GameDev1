@@ -16,7 +16,7 @@ public:
 
     void Update(float dt, const Tilemap& tilemap);
     void RegisterAll(CollisionSystem& collision_system);
-    void HandleCollisions(const CollisionEventPool& pool, EntityID player_id, Player& player);
+    void HandleCollisions(const CollisionEventPool& pool, EntityID player_id, Player& player, const SpriteSheet& sheet);
     void RenderAll(SpriteBatch& sprite_batch, float dt);
 
     int ActiveCount() const;

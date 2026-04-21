@@ -70,6 +70,15 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::KoopaDead,  "assets/enemies.png", 50, 139, 16, 16);
     _sprite_sheet.Define(SpriteID::KoopaShell, "assets/enemies.png", 70, 139, 16, 16);
 
+    // FlyKoopa — enemies.png (PLACEHOLDERS)
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk0, "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk1, "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::FlyKoopaWing,  "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
+
+    // Piranha Plant — enemies.png (PLACEHOLDERS)
+    _sprite_sheet.Define(SpriteID::PiranhaUp0, "assets/enemies.png", 0, 0, 16, 24); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 0, 0, 16, 24); // PLACEHOLDER
+
     // Objects
     _sprite_sheet.Define(SpriteID::Flag, "assets/flag.png", 0, 1268, 160, 160);
     _sprite_sheet.Define(SpriteID::Coin0, "assets/misc.png", 303, 99,  10,  16);
@@ -165,6 +174,10 @@ void Game::LoadLevel(const LevelDef& level) {
             _enemy_manager.Spawn(EnemyDef::GOOMBA, _sprite_sheet, sx, sy);
         } else if (spawn.token == 'K') {
             _enemy_manager.Spawn(EnemyDef::KOOPA, _sprite_sheet, sx, sy);
+        } else if (spawn.token == 'P') {
+            _enemy_manager.Spawn(EnemyDef::PIRANHA, _sprite_sheet, sx, sy);
+        } else if (spawn.token == 'W') {
+            _enemy_manager.Spawn(EnemyDef::FLY_KOOPA, _sprite_sheet, sx, sy);
         } else if (spawn.token == 'F') {
             _flag_aabb = { sx, sy, FLAG_W, FLAG_H };
         } else if (spawn.token == 'C') {
@@ -248,7 +261,7 @@ bool Game::Update() {
         _collision_system.Register(_dummy_id, _dummy_aabb, 0.0f, 0.0f);
         _enemy_manager.RegisterAll(_collision_system);
         _collision_system.Detect();
-        _enemy_manager.HandleCollisions(pool, _player.GetID(), _player);
+        _enemy_manager.HandleCollisions(pool, _player.GetID(), _player, _sprite_sheet);
 
         // Collect coins
         for (auto& coin : _coins) {

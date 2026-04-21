@@ -4,7 +4,7 @@
 #include "../renderer/Animation.h"
 #include "../renderer/SpriteID.h"
 
-enum class EnemyState { Patrol, Shell, Sliding, Dead };
+enum class EnemyState { Patrol, Shell, Sliding, Dead, Rising };
 
 struct EnemyDef {
     float w                 = 48.0f;
@@ -17,6 +17,12 @@ struct EnemyDef {
     float shell_wait_time   = 0.0f;
     float shell_slide_speed = 0.0f;
     int   max_slide_bounces = 3;
+
+    // Movement modifications
+    bool  unstomp_able      = false;
+    bool  is_flyer          = false; // If true, treats as FlyKoopa (oscillates and turns to Koopa when stomped)
+    float oscillation_amp   = 0.0f;
+    float oscillation_speed = 0.0f;
 
     // Walk animation
     int      walk_frame_count        = 0;
@@ -35,6 +41,8 @@ struct EnemyDef {
 
     static const EnemyDef GOOMBA;
     static const EnemyDef KOOPA;
+    static const EnemyDef PIRANHA;
+    static const EnemyDef FLY_KOOPA;
 };
 
 struct Enemy {
@@ -46,6 +54,9 @@ struct Enemy {
     float pos_y = 0.0f;
     float vel_x = 0.0f;
     float vel_y = 0.0f;
+    
+    float origin_y = 0.0f;
+    float oscillation_timer = 0.0f;
 
     EntityID id               = 0;
     float    dead_timer       = 0.0f;

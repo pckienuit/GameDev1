@@ -98,11 +98,13 @@ void EnemyManager::Spawn(const EnemyDef& def, const SpriteSheet& sheet, float x,
     e.state     = EnemyState::Patrol;
     e.pos_x     = x;
     e.pos_y     = y;
+    e.origin_y  = y;
     e.vel_x     = def.patrol_speed;
     e.vel_y     = 0.0f;
     e.facing_left = (def.patrol_speed < 0.0f);
     e.dead_timer  = 0.0f;
     e.shell_timer = 0.0f;
+    e.oscillation_timer = 0.0f;
 }
 
 void EnemyManager::Update(float dt, const Tilemap& tilemap) {
@@ -140,7 +142,13 @@ void EnemyManager::Update(float dt, const Tilemap& tilemap) {
         }
 
         // Patrol or Sliding
-        e.vel_y += e.def->gravity * dt;
+        if (e.def->oscillation_amp > 0.0f) {
+            e.oscillation_timer += dt;
+            e.pos_y = e.origin_y + std::sin(e.oscillation_timer * e.def->oscillation_speed) * e.def->oscillation_amp;
+        } else {
+            e.vel_y += e.def->gravity * dt;
+        }
+
         MoveEnemy(e, dt, tilemap);
     }
 }
@@ -153,7 +161,7 @@ void EnemyManager::RegisterAll(CollisionSystem& collision_system) {
     }
 }
 
-void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID player_id, Player& player) {
+void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID player_id, Player& player, const SpriteSheet& sheet) {
     for (auto& e : _enemies) {
         if (!e.active || e.state == EnemyState::Dead) continue;
 
@@ -168,11 +176,25 @@ void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID pla
                               player.GetVelY() > 50.0f &&
                               (player.GetY() + player.GetH()) < (e.pos_y + e.def->h * 0.5f));
 
+            if (e.def->unstomp_able) {
+                is_stomp = false;
+            }
+
             if (is_stomp) {
                 _pending_score += 100;
                 player.Bounce(-400.0f);
 
-                if (!e.def->has_shell || e.state == EnemyState::Sliding) {
+                if (e.def->is_flyer) {
+                    e.def = &EnemyDef::KOOPA;
+                    e.anim_walk = Animation(sheet, e.def->walk_frames, e.def->walk_frame_count, e.def->walk_frame_duration, true);
+                    e.anim_dead = Animation(sheet, e.def->dead_frames, e.def->dead_frame_count, e.def->dead_frame_duration, false);
+                    if (e.def->shell_frame_count > 0) {
+                        e.anim_shell = Animation(sheet, e.def->shell_frames, e.def->shell_frame_count, e.def->shell_frame_duration, true);
+                    }
+                    e.state = EnemyState::Patrol;
+                    e.vel_x = e.facing_left ? -e.def->patrol_speed : e.def->patrol_speed;
+                    e.vel_y = 0.0f;
+                } else if (!e.def->has_shell || e.state == EnemyState::Sliding) {
                     e.state      = EnemyState::Dead;
                     e.dead_timer = e.def->dead_duration;
                     e.vel_x      = 0.0f;

@@ -22,10 +22,14 @@ enum class SpriteID : int {
     GoombaWalk0, GoombaWalk1,
     GoombaDead,
 
-    // Enemies — Koopa
+    // Koopa (normal & flying)
     KoopaWalk0, KoopaWalk1,
     KoopaDead,
     KoopaShell,
+    FlyKoopaWalk0, FlyKoopaWalk1, FlyKoopaWing,
+
+    // Piranha Plant
+    PiranhaUp0, PiranhaUp1,
 
     // Objects
     Flag, 

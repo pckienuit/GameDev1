@@ -17,6 +17,11 @@ const EnemyDef EnemyDef::GOOMBA = {
     /* shell_slide_speed */ 0.0f,
     /* max_slide_bounces */ 0,
 
+    /* unstomp_able      */ false,
+    /* is_flyer          */ false,
+    /* oscillation_amp   */ 0.0f,
+    /* oscillation_speed */ 0.0f,
+
     /* walk_frame_count  */ 2,
     /* walk_frames       */ { SpriteID::GoombaWalk0, SpriteID::GoombaWalk1 },
     /* walk_frame_duration */ 0.5f,
@@ -42,6 +47,11 @@ const EnemyDef EnemyDef::KOOPA = {
     /* shell_slide_speed */ 300.0f,
     /* max_slide_bounces */ 3,
 
+    /* unstomp_able      */ false,
+    /* is_flyer          */ false,
+    /* oscillation_amp   */ 0.0f,
+    /* oscillation_speed */ 0.0f,
+
     /* walk_frame_count  */ 2,
     /* walk_frames       */ { SpriteID::KoopaWalk0, SpriteID::KoopaWalk1 },
     /* walk_frame_duration */ 0.3f,
@@ -53,6 +63,66 @@ const EnemyDef EnemyDef::KOOPA = {
     /* shell_frame_count */ 1,
     /* shell_frames      */ { SpriteID::KoopaShell },
     /* shell_frame_duration */ 1.0f,
+};
+
+const EnemyDef EnemyDef::PIRANHA = {
+    /* w                 */ 48.0f,
+    /* h                 */ 64.0f,
+    /* patrol_speed      */ 0.0f,
+    /* dead_duration     */ 0.5f,
+    /* gravity           */ 0.0f,
+    /* turns_at_edges    */ false,
+    /* has_shell         */ false,
+    /* shell_wait_time   */ 0.0f,
+    /* shell_slide_speed */ 0.0f,
+    /* max_slide_bounces */ 0,
+
+    /* unstomp_able      */ true,
+    /* is_flyer          */ false,
+    /* oscillation_amp   */ 70.0f,
+    /* oscillation_speed */ 2.0f,
+
+    /* walk_frame_count  */ 2,
+    /* walk_frames       */ { SpriteID::PiranhaUp0, SpriteID::PiranhaUp1 },
+    /* walk_frame_duration */ 0.3f,
+
+    /* dead_frame_count  */ 0,
+    /* dead_frames       */ {},
+    /* dead_frame_duration */ 0.0f,
+
+    /* shell_frame_count */ 0,
+    /* shell_frames      */ {},
+    /* shell_frame_duration */ 0.0f,
+};
+
+const EnemyDef EnemyDef::FLY_KOOPA = {
+    /* w                 */ 48.0f,
+    /* h                 */ 48.0f,
+    /* patrol_speed      */ 60.0f,
+    /* dead_duration     */ 0.5f,
+    /* gravity           */ 0.0f,
+    /* turns_at_edges    */ true,
+    /* has_shell         */ false, // becomes a normal Koopa when stomped
+    /* shell_wait_time   */ 0.0f,
+    /* shell_slide_speed */ 0.0f,
+    /* max_slide_bounces */ 0,
+
+    /* unstomp_able      */ false,
+    /* is_flyer          */ true,
+    /* oscillation_amp   */ 80.0f,
+    /* oscillation_speed */ 3.0f,
+
+    /* walk_frame_count  */ 3,
+    /* walk_frames       */ { SpriteID::FlyKoopaWalk0, SpriteID::FlyKoopaWalk1, SpriteID::FlyKoopaWing },
+    /* walk_frame_duration */ 0.15f,
+
+    /* dead_frame_count  */ 0,
+    /* dead_frames       */ {},
+    /* dead_frame_duration */ 0.0f,
+
+    /* shell_frame_count */ 0,
+    /* shell_frames      */ {},
+    /* shell_frame_duration */ 0.0f,
 };
 
 // -----------------------------------------------------------------------
