@@ -17,6 +17,7 @@
 #include "../renderer/ScoreRenderer.h"
 #include "LevelManager.h"
 #include "../collision/AABB.h"
+#include "../renderer/Background.h"
 
 class Game {
 public:
@@ -46,6 +47,8 @@ private:
     SpriteSheet           _sprite_sheet;  // central sprite registry
 
     ScoreRenderer         _score_renderer;  // reads from _sprite_sheet
+
+    Background            _background;
 
     LevelManager          _level_manager;
 

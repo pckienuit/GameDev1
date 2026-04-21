@@ -45,6 +45,13 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::PipeL,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeR,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     
+    // Backgrounds
+    _sprite_sheet.Define(SpriteID::BgMountain, "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgClouds,   "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgTrees,    "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgCastle,   "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgStars,    "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+
     // Player — mario.png
     _sprite_sheet.Define(SpriteID::MarioIdle,  "assets/mario.png", 245, 154, 16, 26);
     _sprite_sheet.Define(SpriteID::MarioWalk0, "assets/mario.png", 275, 154, 16, 26);
@@ -108,10 +115,31 @@ void Game::LoadLevel(const LevelDef& level) {
     _fade_state      = FadeState::FadeIn;
     _fade_alpha      = 1.0f;
 
-    // ---- Background color ----
+    // ---- Background color & layers ----
     _bg_r = level.bg_r;
     _bg_g = level.bg_g;
     _bg_b = level.bg_b;
+
+    _background.Clear();
+    
+    // Setup specific background styles depending on level index
+    int lvl_idx = _level_manager.GetLevelIndex();
+    if (lvl_idx == 0) {
+        // Level 1 - Mountains & Clouds
+        _background.AddLayer(SpriteID::BgClouds,   0.2f, 50.0f,  256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgMountain, 0.5f, 200.0f, 256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgTrees,    0.8f, 350.0f, 256.0f, 128.0f);
+    } 
+    else if (lvl_idx == 1) {
+        // Level 2 - Nighttime (Stars)
+        _background.AddLayer(SpriteID::BgStars, 0.1f, 0.0f, 256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgTrees, 0.6f, 300.0f, 256.0f, 128.0f);
+    }
+    else {
+        // Level 3 - Sunset Castle
+        _background.AddLayer(SpriteID::BgClouds, 0.2f, 100.0f,  256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgCastle, 0.5f, 200.0f, 256.0f, 128.0f);
+    }
 
     // ---- Reset player position (keep score & lives) ----
     _player.SetPosition(level.player_start_x, level.player_start_y);
@@ -275,6 +303,9 @@ bool Game::Update() {
 void Game::Render() {
     _renderer.BeginFrame(_bg_r, _bg_g, _bg_b);
     _sprite_batch.Begin(800.0f, 600.0f, _camera.GetX(), _camera.GetY());
+
+        // Background layers (rendered before world)
+        _background.Render(_sprite_batch, _sprite_sheet, _camera.GetX(), _camera.GetY(), 800.0f, 600.0f);
 
         // Dummy block
         _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h,

@@ -10,6 +10,9 @@ enum class SpriteID : int {
     // Decorations
     Cloud, Bush, Hill,
     
+    // Background
+    BgMountain, BgClouds, BgTrees, BgCastle, BgStars,
+
     // Entities
     MarioIdle,
     MarioWalk0, MarioWalk1, MarioWalk2,  // 3 walk frames

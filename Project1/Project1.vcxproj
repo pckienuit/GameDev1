@@ -154,6 +154,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\renderer\Animation.cpp" />
+    <ClCompile Include="src\renderer\Background.cpp" />
     <ClCompile Include="src\renderer\Camera.cpp" />
     <ClCompile Include="src\renderer\Renderer.cpp" />
     <ClCompile Include="src\renderer\ScoreRenderer.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="src\game\LevelManager.h" />
     <ClInclude Include="src\game\Player.h" />
     <ClInclude Include="src\renderer\Animation.h" />
+    <ClInclude Include="src\renderer\Background.h" />
     <ClInclude Include="src\renderer\Camera.h" />
     <ClInclude Include="src\renderer\Renderer.h" />
     <ClInclude Include="src\renderer\ScoreRenderer.h" />
