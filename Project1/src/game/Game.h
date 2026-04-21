@@ -104,10 +104,17 @@ private:
     float                 _fade_alpha = 1.0f;
     static constexpr float FADE_SPEED = 1.5f;
 
+    // --- Level Timer ---
+    static constexpr float LEVEL_TIME = 300.0f;
+    float                 _level_timer = LEVEL_TIME;
+    bool                  _timer_bonus_shown = false;
+    float                 _bonus_display_timer = 0.0f;
+
     // State-specific update helpers
     void UpdateTitle(float real_dt);
     void UpdateLevelIntro(float real_dt);
     void UpdatePlaying(float real_dt);
+    void UpdateTimer(float real_dt);
     void UpdateDying(float real_dt);
     void UpdateGameOver(float real_dt);
     void UpdateLevelComplete(float real_dt);
@@ -117,5 +124,7 @@ private:
     void RenderWorld();
     void RenderHUD();
     void RenderFade();
+    void RenderTimer();
+    void RenderTimeBonus();
     void RenderCenteredText(const std::string& text, float y, float scale = 3.5f);
 };

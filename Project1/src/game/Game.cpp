@@ -188,6 +188,10 @@ void Game::LoadLevel(const LevelDef& level) {
 
     _prev_grounded = true;
     _prev_hurt     = false;
+
+    _level_timer = LEVEL_TIME;
+    _timer_bonus_shown = false;
+    _bonus_display_timer = 0.0f;
 }
 
 // =======================================================================
@@ -258,6 +262,10 @@ void Game::UpdatePlaying(float real_dt) {
         _player.PrepareVelocity(DT,
             _input.IsHeld(Action::MoveLeft), _input.IsHeld(Action::MoveRight),
             _input.IsPressed(Action::Jump),  _input.IsHeld(Action::Jump));
+
+        // Update timer
+        UpdateTimer(DT);
+
         _enemy_manager.Update(DT, _tilemap);
         _collision_system.BeginFrame();
         _collision_system.Register(_player.GetID(), _player.GetAABB(), _player.GetVelX(), _player.GetVelY());
@@ -290,6 +298,12 @@ void Game::UpdatePlaying(float real_dt) {
                 _player.ClampVelocityAlongNormal(-ev.normal_x, -ev.normal_y, ev.hit_time);
         }
         _player.Move(DT, _tilemap);
+
+        // Check death pits
+        const float pit_y = _tilemap.GetHeight() + 100.0f;
+        if (_player.GetY() > pit_y) {
+            _player.Hurt(); // instant death if below map
+        }
 
         // Jump sound
         const bool grounded_now = _player.IsGrounded();
@@ -326,6 +340,17 @@ void Game::UpdatePlaying(float real_dt) {
         _game_loop.ConsumeUpdate();
     }
 }
+
+void Game::UpdateTimer(float real_dt) {
+    if (_state != GameState::Playing) return;
+    
+    _level_timer -= real_dt;
+    if (_level_timer <= 0.0f) {
+        _level_timer = 0.0f;
+        _player.Hurt(); // Time out = death
+    }
+}
+
 
 // -----------------------------------------------------------------------
 // Dying: death animation, then decide next state
@@ -374,7 +399,17 @@ void Game::UpdateGameOver(float real_dt) {
 // LevelComplete: fade out → next level or Victory
 // -----------------------------------------------------------------------
 void Game::UpdateLevelComplete(float real_dt) {
+    if (!_timer_bonus_shown) {
+        int bonus = static_cast<int>(_level_timer) * 10;
+        _score += bonus;
+        _timer_bonus_shown = true;
+        _bonus_display_timer = 2.0f; // show for 2 seconds
+    }
+
     _state_timer -= real_dt;
+    if (_bonus_display_timer > 0) {
+        _bonus_display_timer -= real_dt;
+    }
 
     if (_state_timer <= 0.0f) {
         _fade_alpha += FADE_SPEED * real_dt;
@@ -429,6 +464,9 @@ void Game::Render() {
         case GameState::LevelComplete:
             RenderWorld();
             RenderHUD();
+            if (_timer_bonus_shown && _bonus_display_timer > 0) {
+                RenderTimeBonus();
+            }
             RenderFade();
             break;
 
@@ -513,6 +551,28 @@ void Game::RenderWorld() {
 void Game::RenderHUD() {
     _score_renderer.Draw(_sprite_batch, _score, 10.0f, 10.0f, _camera.GetX(), _camera.GetY());
     _score_renderer.DrawLives(_sprite_batch, _player.GetLives(), 10.0f, 50.0f, _camera.GetX(), _camera.GetY());
+    RenderTimer();
+}
+
+void Game::RenderTimer() {
+    int total_seconds = static_cast<int>(_level_timer);
+    int minutes = total_seconds / 60;
+    int seconds = total_seconds % 60;
+    
+    char buffer[16];
+    std::snprintf(buffer, sizeof(buffer), "TIME %02d:%02d", minutes, seconds);
+    
+    // Top right position
+    _score_renderer.DrawText(_sprite_batch, buffer, 600.0f, 10.0f, _camera.GetX(), _camera.GetY(), 2.5f);
+}
+
+void Game::RenderTimeBonus() {
+    int bonus = static_cast<int>(_level_timer) * 10;
+    std::string text = "TIME BONUS " + std::to_string(bonus);
+    RenderCenteredText(text, 300.0f, 3.0f);
+    
+    // Decrement display timer using real_dt (approximate from frame rate if needed, or pass it)
+    // For simplicity, we just show it during the fade transition
 }
 
 void Game::RenderFade() {
