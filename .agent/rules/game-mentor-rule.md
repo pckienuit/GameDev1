@@ -41,7 +41,7 @@ At session start, summarize current progress.
 | 5 | Mario Physics | 100% ✅ |
 | 6 | Tilemap + Camera | 100% ✅ |
 | 7 | Audio + Enemy AI + Mechanics | 100% ✅ |
-| 8 | HUD + Score + Polish | **90%** 🔧 |
+| 8 | HUD + Score + Polish | **98%** 🔧 |
 
 **Completed (since 2026-04-21):**
 - Week 3 DONE: Central `SpriteSheet` registry — ALL UV coords in `Game.cpp`, nowhere else
@@ -53,9 +53,12 @@ At session start, summarize current progress.
 - Week 8: Coin animation sprites defined (Coin0/1/2 from misc.png atlas)
 - Week 8: Precise digit pixel coordinates corrected from actual atlas
 - Week 8: ✅ Coin animation working — `Animation` shared instance, `Update()` called once per frame
+- Week 8: ✅ Screen transitions — FadeIn on start, FadeOut before win/gameover exit
+  - `Texture(device, r, g, b, a)` — new solid-color constructor added to Texture
+  - `FadeState` enum: FadeIn → Playing → FadeOut → Done
+  - Overlay drawn in world-space using `_camera.GetX/Y()` as anchor
 
 **Remaining:**
-- [ ] Screen transitions (fade in/out)
 - [ ] Bug fixing + playtesting
 - [ ] Enemy spawn/despawn based on camera (Week 7 backlog)
 

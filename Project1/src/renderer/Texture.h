@@ -13,6 +13,9 @@ public:
     Texture(ID3D11Device* device, const char* path,
             unsigned char key_r, unsigned char key_g, unsigned char key_b);
 
+    // Create a 1x1 solid-color texture (useful for colored overlays)
+    Texture(ID3D11Device* device, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
     // TODO: getter trả về ShaderResourceView để bind vào PS
     ID3D11ShaderResourceView* GetSRV() const { return _srv.Get(); }
 

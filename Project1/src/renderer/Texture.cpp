@@ -68,3 +68,13 @@ Texture::Texture(ID3D11Device* device, const char* path,
     CreateD3DTexture(device, pixels, _width, _height, _srv);
     stbi_image_free(pixels);
 }
+
+// ---- solid-color 1x1 constructor ----
+Texture::Texture(ID3D11Device* device,
+                 unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+{
+    _width  = 1;
+    _height = 1;
+    unsigned char pixels[4] = { r, g, b, a };
+    CreateD3DTexture(device, pixels, 1, 1, _srv);
+}

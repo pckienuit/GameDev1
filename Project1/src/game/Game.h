@@ -73,4 +73,12 @@ private:
     // Coins
     std::vector<AABB>     _coins;
     Animation             _coin_anim;
+
+    //Fade state
+    enum class FadeState { FadeIn, Playing, FadeOut, Done};
+    Texture               _fade_texture;
+    Sprite                _fade_sprite;
+    FadeState             _fade_state = FadeState::FadeIn;
+    float                 _fade_alpha = 1.0f;
+    static constexpr float FADE_SPEED = 1.5f;
 };

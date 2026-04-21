@@ -13,7 +13,9 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _player(200.0f, 100.0f, _sprite_sheet, _entity_manager),
                 _dummy_id(_entity_manager.Create()),
                 _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f }),
-                _enemy_manager(_entity_manager)
+                _enemy_manager(_entity_manager),
+                _fade_texture(_renderer.GetDevice(), 255, 255, 255, 255),
+                _fade_sprite(&_fade_texture, 0.0f, 0.0f,1.0f, 1.0f)
 {
     // Audio — non-fatal: game runs silently if device is unavailable
     const bool audio_ok = _sound_manager.Init();
@@ -112,6 +114,22 @@ Game::Game() : _window("Mario Engine", 800, 600),
 
 bool Game::Update() {
     if (!_window.ProcessMessages()) return false;
+    const float real_dt = static_cast<float>(_game_loop.Tick());
+
+    if (_fade_state == FadeState::FadeIn) {
+        _fade_alpha -= FADE_SPEED * real_dt;
+        if (_fade_alpha <= 0.0f) {
+            _fade_alpha  = 0.0f;
+            _fade_state  = FadeState::Playing;
+        }
+    }
+    if (_fade_state == FadeState::FadeOut) {
+        _fade_alpha += FADE_SPEED * real_dt;
+        if (_fade_alpha >= 1.0f) {
+            _fade_alpha = 1.0f;
+            _fade_state = FadeState::Done;
+        }
+    }
 
     // Game over delay: play die sound once, then wait before quitting
     const bool game_over_now = _player.IsGameOver();
@@ -123,16 +141,22 @@ bool Game::Update() {
 
     // Win delay: freeze gameplay, wait 2s then quit
     if (_is_won) {
-        const float real_dt = static_cast<float>(_game_loop.Tick());
         _win_timer -= real_dt;
-        if (_win_timer <= 0.0f) return false;
+        if (_win_timer <= 0.0f) {
+            if (_fade_state != FadeState::FadeOut && _fade_state != FadeState::Done)
+                _fade_state = FadeState::FadeOut;
+            if (_fade_state == FadeState::Done) return false;
+        }
         return true;  // keep rendering the winning frame
     }
 
     if (game_over_now) {
-        const float real_dt = static_cast<float>(_game_loop.Tick());
         _game_over_timer -= real_dt;
-        if (_game_over_timer <= 0.0f) return false;
+        if (_game_over_timer <= 0.0f) {
+            if (_fade_state != FadeState::FadeOut && _fade_state != FadeState::Done)
+                _fade_state = FadeState::FadeOut;
+            if (_fade_state == FadeState::Done) return false;
+        }
 
         // Still run physics so Mario falls
         while (_game_loop.ShouldUpdate()) {
@@ -141,8 +165,6 @@ bool Game::Update() {
         }
         return true;
     }
-
-    _game_loop.Tick();
 
     const CollisionEventPool& pool = _collision_system.GetEvents();
 
@@ -256,6 +278,15 @@ void Game::Render() {
     if (_flag_aabb.x > -9000.0f) {
         _sprite_batch.Draw(_flag_aabb.x, _flag_aabb.y, _flag_aabb.w, _flag_aabb.h,
                            _sprite_sheet.Get(SpriteID::Flag), 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    if (_fade_alpha > 0.001f) {
+        _sprite_batch.Draw(
+            _camera.GetX(), _camera.GetY(),
+            _window.GetWidth(), _window.GetHeight(),
+            _fade_sprite,
+            0.0f, 0.0f, 0.0f, _fade_alpha
+        );
     }
 
     _sprite_batch.End();
