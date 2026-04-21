@@ -6,6 +6,8 @@
 #include "../renderer/Renderer.h"
 #include "../renderer/SpriteBatch.h"
 #include "../renderer/Texture.h"
+#include "../renderer/TextureRegistry.h"
+#include "../renderer/SpriteSheet.h"
 #include "../renderer/Camera.h"
 #include "../ecs/EntityManager.h"
 #include "../tilemap/Tilemap.h"
@@ -38,10 +40,10 @@ private:
     Renderer              _renderer;
     SpriteBatch           _sprite_batch;
 
-    Texture               _brick_texture;
-    Texture               _mario_texture;   
-    Texture               _misc_texture;     // font + misc sprites
-    ScoreRenderer         _score_renderer;   // depends on _misc_texture
+    TextureRegistry       _tex_registry;
+    SpriteSheet           _sprite_sheet;  // central sprite registry
+
+    ScoreRenderer         _score_renderer;  // reads from _sprite_sheet
 
     int                   _score = 0;
     bool                  _prev_grounded   = true;
@@ -60,20 +62,14 @@ private:
 
     Camera                _camera;
     Player                _player;
-    Sprite                _brick_sprite;
-    Sprite                _mario_sprite;
     EntityID              _dummy_id;
     AABB                  _dummy_aabb;
 
-    Texture               _goomba_texture;
-    Texture               _koopa_texture;   // TODO: swap to "assets/koopa.png" when available
     EnemyManager          _enemy_manager;
 
     // Flag (win condition)
-    Texture               _flag_texture;
-    Sprite                _flag_sprite;
-    AABB                  _flag_aabb = {-9999.0f, 0.0f, 0.0f, 0.0f};  // invalid until loaded
+    AABB                  _flag_aabb = {-9999.0f, 0.0f, 0.0f, 0.0f};
 
-    // Coin
+    // Coins
     std::vector<AABB>     _coins;
 };

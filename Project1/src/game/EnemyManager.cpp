@@ -87,11 +87,11 @@ bool EnemyManager::IsEdgeAhead(const Enemy& e, const Tilemap& tilemap) const {
     return !tilemap.IsBlockingFall(leading_col, ground_row);
 }
 
-void EnemyManager::Spawn(const EnemyDef& def, const Texture* texture, float x, float y) {
+void EnemyManager::Spawn(const EnemyDef& def, const SpriteSheet& sheet, float x, float y) {
     int idx = FindFreeSlot();
     if (idx == -1) return;
 
-    _enemies[idx] = Enemy(texture, def, _em);
+    _enemies[idx] = Enemy(sheet, def, _em);
 
     Enemy& e    = _enemies[idx];
     e.active    = true;

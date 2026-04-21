@@ -1,24 +1,19 @@
 #include "Player.h"
+#include "../renderer/SpriteSheet.h"
 
-Player::Player(float start_x, float start_y, const Texture* texture, EntityManager& entity_manager):
+Player::Player(float start_x, float start_y, const SpriteSheet& sheet, EntityManager& entity_manager):
     _pos_x(start_x),
     _pos_y(start_y),
     _vel_x(0.0f),
     _vel_y(0.0f),
     _is_grounded(false),
-    _anim_idle(texture),
-    _anim_walk(texture),
-    _anim_jump(texture),
+    _anim_idle(sheet, { SpriteID::MarioIdle                            }, 0.4f),
+    _anim_walk(sheet, { SpriteID::MarioWalk0, SpriteID::MarioWalk1,
+                        SpriteID::MarioWalk2                           }, 0.15f),
+    _anim_jump(sheet, { SpriteID::MarioJump                            }, 1.0f, false),
     _facing_left(false),
     _id(entity_manager.Create())
 {
-    // Sprite sheet: 256x64, 4 frames each 64x64
-    _anim_idle.AddFrame(245, 154, 16, 26, 0.4f);   // Idle
-    _anim_walk.AddFrame(275, 154, 16, 26, 0.15f);  // Walk1
-    _anim_walk.AddFrame(305, 154, 16, 26, 0.15f);  // Walk2
-    _anim_walk.AddFrame(335, 154, 16, 26, 0.15f);  // Walk3
-    _anim_jump.AddFrame(246, 233, 16, 26, 1.0f);   // Jump
-    _anim_jump.SetLooping(false);
 }
 
 void Player::Update(float dt, bool move_left, bool move_right, bool jump_pressed, const Tilemap& tilemap) {

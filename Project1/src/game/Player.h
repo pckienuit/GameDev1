@@ -1,6 +1,7 @@
 #pragma once
 #include "../tilemap/Tilemap.h"
 #include "../renderer/Animation.h"
+#include "../renderer/SpriteSheet.h"
 #include "../collision/AABB.h"
 #include "../ecs/EntityManager.h"
 #include <cmath>
@@ -8,7 +9,7 @@
 
 class Player {
 public:
-    Player(float start_x, float start_y, const Texture* texture, EntityManager& entity_manager);
+    Player(float start_x, float start_y, const SpriteSheet& sheet, EntityManager& entity_manager);
 
     void Update(float dt, bool move_left, bool move_right, 
                 bool jump_pressed, const Tilemap& tilemap);

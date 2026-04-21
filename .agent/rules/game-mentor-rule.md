@@ -30,28 +30,33 @@ The roadmap state should be tracked across sessions.
 When tasks are completed, note them explicitly.
 At session start, summarize current progress.
 
-### 📊 Current Progress Snapshot (updated: 2026-04-19)
+### 📊 Current Progress Snapshot (updated: 2026-04-21)
 
 | Week | Topic | % |
 |------|-------|---|
 | 1 | D3D11 Foundation | 95% ✅ |
 | 2 | Core Engine | 100% ✅ |
-| 3 | ECS + Assets | 80% |
+| 3 | ECS + Assets | **100% ✅** |
 | 4 | Collision System | 100% ✅ |
-| 5 | Mario Physics | **100% ✅** |
-| 6 | Tilemap + Camera | **100% ✅** |
-| 7 | Audio + Enemy AI + Mechanics | **100% ✅** |
-| 8 | HUD + Score + Polish | **70%** 🔧 |
+| 5 | Mario Physics | 100% ✅ |
+| 6 | Tilemap + Camera | 100% ✅ |
+| 7 | Audio + Enemy AI + Mechanics | 100% ✅ |
+| 8 | HUD + Score + Polish | **85%** 🔧 |
 
-**Completed (since 2026-04-16):**
-- Week 6 DONE: Camera follow (deadzone + lerp), camera clamping, tile collision (solid+one-way)
-- Week 7 DONE: XAudio2 (5 sounds), Koopa full state machine (shell/sliding/kick/bounce limit/grace fix)
-- Week 8: Score+lives HUD, win condition (flag 'F' token), color-key transparency, coin collectibles ('C' token +10 score)
+**Completed (since 2026-04-21):**
+- Week 3 DONE: Central `SpriteSheet` registry — ALL UV coords in `Game.cpp`, nowhere else
+  - `SpriteID` enum covers all sprites (Mario, Goomba, Koopa, HUD, Coin, Flag)
+  - `Animation` refactored: `SpriteSheet&` + `SpriteID[]`, lazy init (no eager `Get()`)
+  - `Player`, `Enemy`, `EnemyManager` all migrated — no raw `Texture*` in game objects
+  - `ScoreRenderer` now reads from central `SpriteSheet` via enum
+  - `TextureRegistry` deduplicates textures automatically
+- Week 8: Coin animation sprites defined (Coin0/1/2 from misc.png atlas)
+- Week 8: Precise digit pixel coordinates corrected from actual atlas
 
 **Remaining:**
+- [ ] Coin render animation (use `Coin0/1/2` in `Animation`, currently static)
 - [ ] Screen transitions (fade in/out)
 - [ ] Bug fixing + playtesting
 - [ ] Enemy spawn/despawn based on camera (Week 7 backlog)
-- [ ] Proper coin sprite (currently placeholder yellow brick)
 
 **Full roadmap:** `.agent/agents/game-mentor.md`

@@ -4,14 +4,15 @@
 #include "../tilemap/Tilemap.h"
 #include "../collision/CollisionSystem.h"
 #include "../renderer/SpriteBatch.h"
+#include "../renderer/SpriteSheet.h"
 #include <vector>
 
 class EnemyManager {
 public:
     explicit EnemyManager(EntityManager& em);
 
-    // Caller (Game) owns the texture + selects the EnemyDef preset
-    void Spawn(const EnemyDef& def, const Texture* texture, float x, float y);
+    // Caller passes the central SpriteSheet to build enemy animations
+    void Spawn(const EnemyDef& def, const SpriteSheet& sheet, float x, float y);
 
     void Update(float dt, const Tilemap& tilemap);
     void RegisterAll(CollisionSystem& collision_system);

@@ -2,40 +2,37 @@
 #include "../collision/AABB.h"
 #include "../ecs/EntityManager.h"
 #include "../renderer/Animation.h"
-#include "../renderer/Texture.h"
+#include "../renderer/SpriteID.h"
 
 enum class EnemyState { Patrol, Shell, Sliding, Dead };
 
-struct AnimFrameDef {
-    int   x, y, w, h;
-    float duration;
-};
-
 struct EnemyDef {
-    float w                 = 48.0f;  // render width in pixels
-    float h                 = 48.0f;  // render height in pixels
+    float w                 = 48.0f;
+    float h                 = 48.0f;
     float patrol_speed      = 60.0f;
     float dead_duration     = 0.5f;
     float gravity           = 1200.0f;
-    bool  turns_at_edges    = true;   // patrol reverses at ledges
-    bool  has_shell         = false;  // true = Koopa-like stomp behavior
+    bool  turns_at_edges    = true;
+    bool  has_shell         = false;
     float shell_wait_time   = 0.0f;
     float shell_slide_speed = 0.0f;
-    int   max_slide_bounces = 3;   // wall bounces before shell stops sliding
+    int   max_slide_bounces = 3;
 
-    // Walk animation (up to 4 frames)
-    int          walk_frame_count = 0;
-    AnimFrameDef walk_frames[4]   = {};
+    // Walk animation
+    int      walk_frame_count        = 0;
+    SpriteID walk_frames[4]          = {};
+    float    walk_frame_duration     = 0.5f;
 
-    // Dead/squish animation (up to 2 frames)
-    int          dead_frame_count = 0;
-    AnimFrameDef dead_frames[2]   = {};
+    // Dead/squish animation
+    int      dead_frame_count        = 0;
+    SpriteID dead_frames[2]          = {};
+    float    dead_frame_duration     = 0.5f;
 
-    // Shell idle animation (only relevant when has_shell = true, up to 2 frames)
-    int          shell_frame_count = 0;
-    AnimFrameDef shell_frames[2]   = {};
+    // Shell idle animation
+    int      shell_frame_count       = 0;
+    SpriteID shell_frames[2]         = {};
+    float    shell_frame_duration    = 1.0f;
 
-    // Named presets — add new enemy types here only
     static const EnemyDef GOOMBA;
     static const EnemyDef KOOPA;
 };
@@ -50,19 +47,18 @@ struct Enemy {
     float vel_x = 0.0f;
     float vel_y = 0.0f;
 
-    EntityID id          = 0;
-    float    dead_timer        = 0.0f;
-    float    shell_timer       = 0.0f;
+    EntityID id               = 0;
+    float    dead_timer       = 0.0f;
+    float    shell_timer      = 0.0f;
     int      slide_bounce_count = 0;
-
-    bool     facing_left = false;
+    bool     facing_left      = false;
 
     Animation anim_walk;
     Animation anim_dead;
     Animation anim_shell;
 
-    explicit Enemy(const Texture* texture, const EnemyDef& def, EntityManager& em);
-    Enemy() : anim_walk(nullptr), anim_dead(nullptr), anim_shell(nullptr) {}
+    explicit Enemy(const SpriteSheet& sheet, const EnemyDef& def, EntityManager& em);
+    Enemy() = default;
 
     float GetH() const { return def ? def->h : 48.0f; }
     float GetW() const { return def ? def->w : 48.0f; }

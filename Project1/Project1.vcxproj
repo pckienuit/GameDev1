@@ -184,6 +184,7 @@
     <ClInclude Include="src\renderer\ScoreRenderer.h" />
     <ClInclude Include="src\renderer\Sprite.h" />
     <ClInclude Include="src\renderer\SpriteBatch.h" />
+    <ClInclude Include="src\renderer\SpriteID.h" />
     <ClInclude Include="src\renderer\SpriteSheet.h" />
     <ClInclude Include="src\renderer\Texture.h" />
     <ClInclude Include="src\renderer\TextureRegistry.h" />
