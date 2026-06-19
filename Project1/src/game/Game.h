@@ -48,6 +48,10 @@ private:
     static constexpr int   CELL_SIZE  = 32;
     static constexpr int MAX_EVENTS = 1024;
 
+    // World dimensions (fixed game resolution)
+    static constexpr int   WORLD_WIDTH  = 800;
+    static constexpr int   WORLD_HEIGHT = 600;
+
     Window                _window;
     GameLoop              _game_loop;
     Input                 _input;
@@ -86,7 +90,7 @@ private:
 
     Camera                _camera;
     Player                _player;
-    EntityID              _dummy_id;
+    EntityID              _dummy_id = NULL_ENTITY;
     AABB                  _dummy_aabb;
 
     EnemyManager          _enemy_manager;

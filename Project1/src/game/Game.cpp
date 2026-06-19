@@ -10,14 +10,17 @@ Game::Game() : _window("Mario Engine", 800, 600),
                 _entity_manager(),
                 _tilemap(0, 0, 0),
                 _collision_system(0, 0, CELL_SIZE, MAX_EVENTS),
-                _camera(800.0f, 600.0f),
+                _camera(WORLD_WIDTH * 1.0f, WORLD_HEIGHT * 1.0f),
                 _player(200.0f, 100.0f, _sprite_sheet, _entity_manager),
-                _dummy_id(_entity_manager.Create()),
-                _dummy_aabb({ 100.0f, 200.0f, 48.0f, 96.0f }),
                 _enemy_manager(_entity_manager),
                 _fade_texture(_renderer.GetDevice(), 255, 255, 255, 255),
                 _fade_sprite(&_fade_texture, 0.0f, 0.0f,1.0f, 1.0f)
 {
+    // Setup window resize callback
+    _window.SetResizeCallback([this](int width, int height) {
+        _renderer.Resize(width, height);
+    });
+
     // Audio — non-fatal: game runs silently if device is unavailable
     const bool audio_ok = _sound_manager.Init();
     OutputDebugStringA(audio_ok ? "[Sound] XAudio2 OK\n" : "[Sound] XAudio2 FAILED\n");
@@ -38,20 +41,23 @@ Game::Game() : _window("Mario Engine", 800, 600),
     // -----------------------------------------------------------------------
 
     // Tilemap
-    _sprite_sheet.Define(SpriteID::BrickTile,  "assets/misc.png", 273, 9, 16, 16);
-    _sprite_sheet.Define(SpriteID::GroundTile, "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::QBlockTile0,"assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BrickTile,  "assets/misc.png", 300, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::GroundTile, "assets/misc.png", 354, 153, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockTile0,"assets/misc.png", 408, 171, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeTL,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeTR,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeL,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeR,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     
     // Backgrounds
-    _sprite_sheet.Define(SpriteID::BgMountain, "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::BgClouds,   "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::BgTrees,    "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::BgCastle,   "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::BgStars,    "assets/misc.png", 0, 0, 256, 128); // PLACEHOLDER
+    std::string background_texture_path = "assets/backgrounds.png";
+    _sprite_sheet.Define(SpriteID::BgMountain, background_texture_path, 1, 394, 512, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgClouds0,  background_texture_path, 1, 10, 512, 254); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgClouds1,  background_texture_path, 1, 266, 512, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgClouds2,  background_texture_path, 514, 10, 512, 512); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgTrees,    background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgCastle,   background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgStars,    background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
 
     // Player — mario.png
     _sprite_sheet.Define(SpriteID::MarioIdle,  "assets/mario.png", 245, 154, 16, 26);
@@ -69,16 +75,16 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::KoopaWalk0, "assets/enemies.png",  6, 130, 16, 26);
     _sprite_sheet.Define(SpriteID::KoopaWalk1, "assets/enemies.png", 28, 130, 16, 26);
     _sprite_sheet.Define(SpriteID::KoopaDead,  "assets/enemies.png", 50, 139, 16, 16);
-    _sprite_sheet.Define(SpriteID::KoopaShell, "assets/enemies.png", 70, 139, 16, 16);
+    _sprite_sheet.Define(SpriteID::KoopaShell, "assets/enemies.png", 71, 139, 18, 16);
 
     // FlyKoopa — enemies.png (PLACEHOLDERS)
-    _sprite_sheet.Define(SpriteID::FlyKoopaWalk0, "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::FlyKoopaWalk1, "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::FlyKoopaWing,  "assets/enemies.png", 0, 0, 16, 26); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk0, "assets/enemies.png", 135, 129, 16, 27); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk1, "assets/enemies.png", 157, 128, 16, 28); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::FlyKoopaWing,  "assets/enemies.png", 135, 129, 16, 27); // PLACEHOLDER
 
     // Piranha Plant — enemies.png (PLACEHOLDERS)
-    _sprite_sheet.Define(SpriteID::PiranhaUp0, "assets/enemies.png", 0, 0, 16, 24); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 0, 0, 16, 24); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PiranhaUp0, "assets/enemies.png", 151, 62, 16, 24); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 197, 62, 16, 24); // PLACEHOLDER
 
     // Objects
     _sprite_sheet.Define(SpriteID::Flag, "assets/flag.png", 0, 1268, 160, 160);
@@ -100,13 +106,34 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::Digit8, digit_texture_path, 523, 239, 8, 13); //digit 8
     _sprite_sheet.Define(SpriteID::Digit9, digit_texture_path, 532, 239, 8, 13); //digit 9
 
-    _sprite_sheet.Define(SpriteID::Heart, "assets/misc.png", 596, 192, 10, 10);
+    _sprite_sheet.Define(SpriteID::LetterA, digit_texture_path, 458, 156, 7, 11); //letter A
+    _sprite_sheet.Define(SpriteID::LetterB, digit_texture_path, 466, 156, 7, 11); //letter B
+    _sprite_sheet.Define(SpriteID::LetterC, digit_texture_path, 474, 156, 7, 11); //letter C
+    _sprite_sheet.Define(SpriteID::LetterD, digit_texture_path, 482, 156, 7, 11); //letter D
+    _sprite_sheet.Define(SpriteID::LetterE, digit_texture_path, 490, 156, 7, 11); //letter E
+    _sprite_sheet.Define(SpriteID::LetterF, digit_texture_path, 498, 156, 7, 11); //letter F
+    _sprite_sheet.Define(SpriteID::LetterG, digit_texture_path, 506, 156, 7, 11); //letter G
+    _sprite_sheet.Define(SpriteID::LetterH, digit_texture_path, 514, 156, 7, 11); //letter H
+    _sprite_sheet.Define(SpriteID::LetterI, digit_texture_path, 522, 156, 7, 11); //letter I
+    _sprite_sheet.Define(SpriteID::LetterJ, digit_texture_path, 530, 156, 7, 11); //letter J
+    _sprite_sheet.Define(SpriteID::LetterK, digit_texture_path, 458, 169, 7, 11); //letter K
+    _sprite_sheet.Define(SpriteID::LetterL, digit_texture_path, 466, 169, 7, 11); //letter L
+    _sprite_sheet.Define(SpriteID::LetterM, digit_texture_path, 474, 169, 8, 11); //letter M
+    _sprite_sheet.Define(SpriteID::LetterN, digit_texture_path, 482, 169, 7, 11); //letter N
+    _sprite_sheet.Define(SpriteID::LetterO, digit_texture_path, 490, 169, 7, 11); //letter O
+    _sprite_sheet.Define(SpriteID::LetterP, digit_texture_path, 498, 169, 7, 11); //letter P
+    _sprite_sheet.Define(SpriteID::LetterQ, digit_texture_path, 506, 169, 8, 11); //letter Q
+    _sprite_sheet.Define(SpriteID::LetterR, digit_texture_path, 514, 169, 7, 11); //letter R
+    _sprite_sheet.Define(SpriteID::LetterS, digit_texture_path, 522, 169, 7, 11); //letter S
+    _sprite_sheet.Define(SpriteID::LetterT, digit_texture_path, 530, 169, 8, 11); //letter T
+    _sprite_sheet.Define(SpriteID::LetterU, digit_texture_path, 458, 182, 7, 11); //letter U
+    _sprite_sheet.Define(SpriteID::LetterV, digit_texture_path, 466, 182, 7, 11); //letter V
+    _sprite_sheet.Define(SpriteID::LetterW, digit_texture_path, 474, 182, 7, 11); //letter W
+    _sprite_sheet.Define(SpriteID::LetterX, digit_texture_path, 482, 182, 7, 11); //letter X
+    _sprite_sheet.Define(SpriteID::LetterY, digit_texture_path, 490, 182, 8, 11); //letter Y
+    _sprite_sheet.Define(SpriteID::LetterZ, digit_texture_path, 498, 182, 7, 11); //letter Z
 
-    // Bitmap font A-Z — misc.png (PLACEHOLDERS — user maps real coords)
-    for (int i = 0; i < 26; ++i) {
-        SpriteID id = static_cast<SpriteID>(static_cast<int>(SpriteID::LetterA) + i);
-        _sprite_sheet.Define(id, "assets/misc.png", 0, 0, 8, 13); // PLACEHOLDER
-    }
+    _sprite_sheet.Define(SpriteID::Heart, "assets/misc.png", 596, 192, 10, 10);
 
     // -----------------------------------------------------------------------
 
@@ -136,9 +163,9 @@ void Game::LoadLevel(const LevelDef& level) {
     int lvl_idx = _level_manager.GetLevelIndex();
     if (lvl_idx == 0) {
         // Level 1 - Mountains & Clouds
-        _background.AddLayer(SpriteID::BgClouds,   0.2f, 50.0f,  256.0f, 128.0f);
-        _background.AddLayer(SpriteID::BgMountain, 0.5f, 200.0f, 256.0f, 128.0f);
-        _background.AddLayer(SpriteID::BgTrees,    0.8f, 350.0f, 256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgClouds2,  0.2f, 0.0f,  512.0f, 512.0f);
+        _background.AddLayer(SpriteID::BgClouds1,  0.5f, 384.0f, 512.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgMountain, 0.8f, 512.0f, 512.0f, 128.0f);
     } 
     else if (lvl_idx == 1) {
         // Level 2 - Nighttime (Stars)
@@ -147,7 +174,7 @@ void Game::LoadLevel(const LevelDef& level) {
     }
     else {
         // Level 3 - Sunset Castle
-        _background.AddLayer(SpriteID::BgClouds, 0.2f, 100.0f,  256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgClouds1, 0.2f, 100.0f,  256.0f, 128.0f);
         _background.AddLayer(SpriteID::BgCastle, 0.5f, 200.0f, 256.0f, 128.0f);
     }
 
@@ -446,7 +473,8 @@ void Game::UpdateVictory(float real_dt) {
 
 void Game::Render() {
     _renderer.BeginFrame(_bg_r, _bg_g, _bg_b);
-    _sprite_batch.Begin(800.0f, 600.0f, _camera.GetX(), _camera.GetY());
+    _sprite_batch.Begin(static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT),
+                        _camera.GetX(), _camera.GetY());
 
     switch (_state) {
         case GameState::Title:
@@ -500,7 +528,8 @@ void Game::Render() {
 
 void Game::RenderWorld() {
     // Background layers
-    _background.Render(_sprite_batch, _sprite_sheet, _camera.GetX(), _camera.GetY(), 800.0f, 600.0f);
+    _background.Render(_sprite_batch, _sprite_sheet, _camera.GetX(), _camera.GetY(),
+                      static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT));
 
     // Dummy block
     _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h,
@@ -549,6 +578,7 @@ void Game::RenderWorld() {
 }
 
 void Game::RenderHUD() {
+    // HUD scrolls with camera
     _score_renderer.Draw(_sprite_batch, _score, 10.0f, 10.0f, _camera.GetX(), _camera.GetY());
     _score_renderer.DrawLives(_sprite_batch, _player.GetLives(), 10.0f, 50.0f, _camera.GetX(), _camera.GetY());
     RenderTimer();
@@ -558,12 +588,16 @@ void Game::RenderTimer() {
     int total_seconds = static_cast<int>(_level_timer);
     int minutes = total_seconds / 60;
     int seconds = total_seconds % 60;
-    
+
     char buffer[16];
     std::snprintf(buffer, sizeof(buffer), "TIME %02d:%02d", minutes, seconds);
-    
-    // Top right position
-    _score_renderer.DrawText(_sprite_batch, buffer, 600.0f, 10.0f, _camera.GetX(), _camera.GetY(), 2.5f);
+
+    // Right-aligned: position from right edge of world
+    constexpr float PADDING = 10.0f;
+    float text_w = ScoreRenderer::MeasureTextWidth(buffer, 2.5f);
+    float screen_x = static_cast<float>(WORLD_WIDTH) - text_w - PADDING;
+
+    _score_renderer.DrawText(_sprite_batch, buffer, screen_x, 10.0f, _camera.GetX(), _camera.GetY(), 2.5f);
 }
 
 void Game::RenderTimeBonus() {
@@ -579,7 +613,7 @@ void Game::RenderFade() {
     if (_fade_alpha > 0.001f) {
         _sprite_batch.Draw(
             _camera.GetX(), _camera.GetY(),
-            static_cast<float>(_window.GetWidth()), static_cast<float>(_window.GetHeight()),
+            static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT),
             _fade_sprite,
             0.0f, 0.0f, 0.0f, _fade_alpha
         );
@@ -591,7 +625,6 @@ void Game::RenderCenteredText(const std::string& text, float y, float scale) {
     const float char_w = 8.0f * scale;
     const float gap    = 4.0f * (scale / 2.5f);
     const float total  = text.size() * char_w + (text.size() - 1) * gap;
-    const float x      = (800.0f - total) / 2.0f;
-    _score_renderer.DrawText(_sprite_batch, text, x, y,
-                             _camera.GetX(), _camera.GetY(), scale);
+    const float x      = (WORLD_WIDTH - total) / 2.0f;
+    _score_renderer.DrawText(_sprite_batch, text, x, y, 0.0f, 0.0f, scale);
 }

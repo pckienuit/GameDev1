@@ -1,6 +1,51 @@
 #include "ScoreRenderer.h"
 #include <string>
 
+// Native pixel widths for each letter A-Z (index 0 = 'A', etc.)
+// Taken from the sprite sheet mapping in Game.cpp
+static constexpr int CHAR_WIDTHS_AZ[26] = {
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // A-J: all 7px
+    7, 7, 8, 7, 7, 7, 8, 7, 7, 7, // K-T: KLM=7/8, N-P=7, Q=8, R-T=7
+    7, 7, 7, 8, 7                 // U-Z: U-V=7, W=7, X=7, Y=8, Z=7
+};
+
+// Native pixel widths for digits 0-9
+static constexpr int CHAR_WIDTHS_DIGITS[10] = {
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+};
+
+int ScoreRenderer::GetCharWidth(char ch) {
+    if (ch >= 'A' && ch <= 'Z') {
+        return CHAR_WIDTHS_AZ[ch - 'A'];
+    }
+    if (ch >= 'a' && ch <= 'z') {
+        return CHAR_WIDTHS_AZ[ch - 'a'];
+    }
+    if (ch >= '0' && ch <= '9') {
+        return CHAR_WIDTHS_DIGITS[ch - '0'];
+    }
+    return -1; // unsupported
+}
+
+float ScoreRenderer::MeasureTextWidth(const std::string& text, float scale) {
+    if (text.empty()) return 0.0f;
+
+    float width = 0.0f;
+    const float base_gap = DIGIT_DGAP * (scale / DIGIT_SCALE);
+
+    for (size_t i = 0; i < text.size(); ++i) {
+        char ch = text[i];
+        if (ch == ' ') {
+            width += DIGIT_W * scale + base_gap;
+            continue;
+        }
+        int char_w = GetCharWidth(ch);
+        if (char_w < 0) char_w = DIGIT_W;
+        width += char_w * scale + base_gap;
+    }
+    return width;
+}
+
 ScoreRenderer::ScoreRenderer(const SpriteSheet& sheet) : _sheet(sheet) {}
 
 
@@ -46,33 +91,36 @@ void ScoreRenderer::DrawText(SpriteBatch& batch, const std::string& text,
                               float cam_x, float cam_y, float scale) const {
     float cursor_x = cam_x + screen_x;
     float cursor_y = cam_y + screen_y;
-    const float char_w = DIGIT_W * scale;
     const float char_h = DIGIT_H * scale;
-    const float gap    = DIGIT_DGAP * (scale / DIGIT_SCALE);
+    const float base_gap = DIGIT_DGAP * (scale / DIGIT_SCALE);
 
     for (size_t i = 0; i < text.size(); ++i) {
         char ch = text[i];
 
         if (ch == ' ') {
-            cursor_x += char_w + gap;
+            cursor_x += DIGIT_W * scale + base_gap;
             continue;
         }
 
         SpriteID id = SpriteID::Count; // invalid sentinel
+        int char_w = DIGIT_W;
 
         if (ch >= 'A' && ch <= 'Z') {
             id = static_cast<SpriteID>(static_cast<int>(SpriteID::LetterA) + (ch - 'A'));
+            char_w = CHAR_WIDTHS_AZ[ch - 'A'];
         } else if (ch >= 'a' && ch <= 'z') {
             id = static_cast<SpriteID>(static_cast<int>(SpriteID::LetterA) + (ch - 'a'));
+            char_w = CHAR_WIDTHS_AZ[ch - 'a'];
         } else if (ch >= '0' && ch <= '9') {
             id = static_cast<SpriteID>(static_cast<int>(SpriteID::Digit0) + (ch - '0'));
+            char_w = CHAR_WIDTHS_DIGITS[ch - '0'];
         }
 
         if (id != SpriteID::Count && _sheet.Has(id)) {
-            batch.Draw(cursor_x, cursor_y, char_w, char_h,
+            batch.Draw(cursor_x, cursor_y, char_w * scale, char_h,
                        _sheet.Get(id), 1.0f, 1.0f, 1.0f, 1.0f);
         }
 
-        cursor_x += char_w + gap;
+        cursor_x += char_w * scale + base_gap;
     }
 }

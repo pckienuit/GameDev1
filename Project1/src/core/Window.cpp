@@ -36,12 +36,15 @@ Window::Window(std::string_view title, int width, int height)
         nullptr,
         nullptr,
         GetModuleHandle(nullptr),
-        nullptr
+        this  // pass 'this' pointer as user data
     );
 
     if (_hwnd == nullptr) {
         throw std::runtime_error("Failed to create window");
     }
+
+    // Store 'this' pointer for WndProc access
+    SetWindowLongPtr(_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
     ShowWindow(_hwnd, SW_SHOW);
     UpdateWindow(_hwnd);
@@ -55,10 +58,22 @@ Window::~Window() {
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg,
                                   WPARAM wParam, LPARAM lParam)
 {
+    // Get window instance from user data
+    Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
     switch (msg) {
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
+
+        case WM_SIZE: {
+            int width = LOWORD(lParam);
+            int height = HIWORD(lParam);
+            if (window && window->_resize_callback) {
+                window->_resize_callback(width, height);
+            }
+            return 0;
+        }
     }
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }

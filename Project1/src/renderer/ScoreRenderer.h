@@ -3,6 +3,7 @@
 #include "SpriteSheet.h"
 #include <algorithm>
 #include <string>
+#include <cstddef>
 
 class ScoreRenderer {
 public:
@@ -19,7 +20,13 @@ public:
                   float screen_x, float screen_y,
                   float cam_x, float cam_y, float scale = 2.5f) const;
 
+    // Calculate total width of text in pixels (before scaling)
+    static float MeasureTextWidth(const std::string& text, float scale);
+
 private:
+    // Get native pixel width of a char (A-Z, a-z, 0-9), or -1 if unsupported
+    static int GetCharWidth(char ch);
+
     static constexpr int   DIGIT_W     = 8;
     static constexpr int   DIGIT_H     = 14;
     static constexpr float DIGIT_SCALE = 2.5f;
