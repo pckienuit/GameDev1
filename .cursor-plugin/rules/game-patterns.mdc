@@ -1,0 +1,84 @@
+---
+description: Game development skills and patterns for Mario D3D11 project
+alwaysApply: false
+globs: "*.cpp,*.h,*.hpp"
+---
+
+# Game Development Skills Reference
+
+## Relevant Skills from .agent/skills/
+
+When working on game development tasks, consider reading:
+- `.agent/skills/game-development/` - Core game dev patterns
+
+## Architecture Principles
+
+1. **Engine code MUST NOT know about game content**
+   - No `#include "Mario.h"` in engine code
+   - Engine provides interfaces, game implements them
+
+2. **Data-driven over hardcoded**
+   - Load sprites from registry, not switch-case
+   - Load level from file, not hardcoded arrays
+
+3. **Composition over inheritance**
+   - Use ECS pattern from Week 3
+   - Components: Position, Velocity, Sprite, Animation
+   - Systems: Movement, Collision, Rendering
+
+4. **Measure before optimize**
+   - Profile first (RenderDoc, PIX)
+   - Then optimize hot paths
+
+## Mario-Specific Patterns
+
+### Entity Creation
+```cpp
+// ✅ CORRECT: Use entity manager
+EntityID enemy = _entityManager.create();
+_positionSystem.setPosition(enemy, spawnX, spawnY);
+_spriteSystem.setSprite(enemy, SpriteID::Goomba);
+
+// ❌ WRONG: Direct class instantiation
+auto enemy = std::make_unique<Goomba>();
+```
+
+### Animation System
+```cpp
+// ✅ CORRECT: Animation from central SpriteSheet
+Animation walkAnim(_spriteSheet, {
+    SpriteID::Mario_Walk1,
+    SpriteID::Mario_Walk2,
+    SpriteID::Mario_Walk3
+});
+```
+
+### Collision Response
+```cpp
+// ✅ CORRECT: Use swept AABB for moving objects
+auto result = SweptAABB(entityAABB, velocity * dt, otherAABB);
+if (result.hasCollision()) {
+    // Resolve with penetration depth
+}
+```
+
+## Performance Tips
+
+| Pattern | Use When |
+|---------|----------|
+| Object Pool | Spawning/destroying many entities (bullets, particles, coins) |
+| Spatial Grid | Collision detection (broadphase) |
+| Sprite Batching | Many sprites on screen |
+| Texture Atlas | Multiple small images |
+
+## CS → Game Dev Parallels
+
+Leverage Kien's competitive programming skills:
+
+| CP Skill | Game Dev Application |
+|----------|---------------------|
+| BFS/DFS | Tilemap flood fill, pathfinding |
+| Segment Tree | Range queries in spatial grid |
+| Union-Find | Connected component detection |
+| Binary Search | Swept AABB time-of-impact |
+| Bitmask DP | State machine transitions |

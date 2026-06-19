@@ -1,0 +1,121 @@
+---
+description: C++ coding standards for Mario D3D11 project - no macros, no globals, modern C++17
+alwaysApply: false
+globs: "*.cpp,*.h,*.hpp"
+---
+
+# C++ Coding Standards
+
+## 🚫 ABSOLUTE BANS
+
+### No Macro Abuse
+
+```cpp
+// ❌ NEVER:
+#define int long long
+#define ff first
+#define ss second
+#define pb push_back
+#define fto(i, a, b) for(int i = a; i <= b; ++i)
+#define oo 1000000007
+#define vvi vector<vector<int>>
+
+// ✅ ALWAYS:
+using i64 = long long;
+constexpr int INF = 1e9;
+std::vector<std::vector<int>> grid;
+
+// Use structured binding:
+auto [x, y] = point;
+```
+
+### No Global Variables
+
+```cpp
+// ❌ NEVER:
+int n, m;
+int dist[1000];
+std::vector<int> g[1000];
+
+// ✅ ALWAYS:
+class LevelManager {
+    int _n, _m;
+    std::vector<int> _dist;
+    // ...
+};
+```
+
+## ✅ REQUIRED
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Classes/Structs | PascalCase | `class PlayerController` |
+| Functions | snake_case | `void update_position()` |
+| Variables | snake_case | `float move_speed` |
+| Private members | _prefix + snake_case | `float _move_speed` |
+| Constants | UPPER_SNAKE_CASE | `constexpr float GRAVITY = 1200.f` |
+
+### Header Order
+
+```cpp
+#pragma once
+
+// Standard library
+#include <vector>
+#include <string>
+#include <optional>
+
+// Third-party
+#include <d3d11.h>
+#include <DirectXMath.h>
+
+// Project headers
+#include "core/Types.h"
+#include "game/Player.h"
+```
+
+### Modern C++ Features (C++17 minimum)
+
+```cpp
+// ✅ ENCOURAGED:
+std::optional<CollisionResult> result;
+if (auto it = map.find(key); it != map.end()) { }
+std::string_view get_name() const;
+[[nodiscard]] int calculate() const;
+constexpr float PI = 3.14159f;
+```
+
+### Memory Management
+
+```cpp
+// ❌ NEVER:
+auto* ptr = new GameObject();
+delete ptr;
+
+// ✅ ALWAYS:
+auto player = std::make_unique<Player>();
+// Or use object pools for frequently created/destroyed objects
+```
+
+## Formatting
+
+- **4 spaces indent** (no tabs)
+- Opening brace on same line
+- One declaration per line
+- Maximum ~100 lines per function (split if longer)
+
+## Documentation
+
+```cpp
+// ✅ GOOD:
+// Calculates jump velocity based on hold duration.
+// Higher hold_time = higher jump (up to max_jump_height).
+// Returns: velocity in pixels/second
+float calculate_jump_velocity(float hold_time) const;
+
+// ❌ BAD:
+// calculates jump
+float jump(float h);
+```

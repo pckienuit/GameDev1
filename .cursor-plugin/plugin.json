@@ -1,0 +1,11 @@
+{
+  "name": "game-dev-kit",
+  "version": "1.0.0",
+  "description": "Game development mentor kit for Mario D3D11 project - includes skills, agents, commands, and rules",
+  "author": "Kien",
+  "logo": "logo.svg",
+  "rules": ["rules/*.mdc"],
+  "skills": ["skills/**/SKILL.md"],
+  "agents": ["agents/*.md"],
+  "commands": ["commands/*.md"]
+}
