@@ -27,8 +27,7 @@ enum class SpriteID : int {
     KoopaDead,
     KoopaShell,
     FlyKoopaWalk0, FlyKoopaWalk1, FlyKoopaWing,
-
-    // Piranha Plant
+     
     PiranhaUp0, PiranhaUp1,
 
     // Objects

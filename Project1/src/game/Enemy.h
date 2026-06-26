@@ -63,6 +63,9 @@ struct Enemy {
     float    shell_timer      = 0.0f;
     int      slide_bounce_count = 0;
     bool     facing_left      = false;
+    bool     hit_by_sliding   = false;
+    bool     penetrable       = false;
+    float    hit_cooldown     = 0.0f; // can't be re-hit by a sliding shell while > 0
 
     Animation anim_walk;
     Animation anim_dead;

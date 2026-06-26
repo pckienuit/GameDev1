@@ -106,11 +106,19 @@ void EnemyManager::Spawn(const EnemyDef& def, const SpriteSheet& sheet, float x,
     e.dead_timer  = 0.0f;
     e.shell_timer = 0.0f;
     e.oscillation_timer = 0.0f;
+    e.hit_by_sliding = false;
+    e.penetrable      = false;
+    e.hit_cooldown    = 0.0f;
 }
 
 void EnemyManager::Update(float dt, const Tilemap& tilemap) {
     for (auto& e : _enemies) {
         if (!e.active) continue;
+
+        if (e.hit_cooldown > 0.0f) {
+            e.hit_cooldown -= dt;
+            if (e.hit_cooldown < 0.0f) e.hit_cooldown = 0.0f;
+        }
 
         if (e.state == EnemyState::Dead) {
             e.dead_timer -= dt;
@@ -123,14 +131,22 @@ void EnemyManager::Update(float dt, const Tilemap& tilemap) {
 
         // Shell: stationary wait — still needs gravity + ground collision
         if (e.state == EnemyState::Shell) {
+            e.vel_y += e.def->gravity * dt;
+            MoveEnemy(e, dt, tilemap);
+
+            const float H = e.def->h;
+            int ground_row = tilemap.PixelToRow(e.pos_y + H);
+            bool grounded =
+                tilemap.IsBlockingFall(tilemap.PixelToCol(e.pos_x + 1.0f),         ground_row) ||
+                tilemap.IsBlockingFall(tilemap.PixelToCol(e.pos_x + e.def->w - 1.0f), ground_row);
+            if (!grounded) continue; // still falling — don't count down or revive
+
             e.shell_timer -= dt;
             if (e.shell_timer <= 0.0f) {
                 e.state       = EnemyState::Patrol;
                 e.vel_x       = e.def->patrol_speed;
                 e.facing_left = (e.vel_x < 0.0f);
             }
-            e.vel_y += e.def->gravity * dt;
-            MoveEnemy(e, dt, tilemap);
             continue;
         }
 
@@ -195,7 +211,8 @@ void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID pla
                     e.state = EnemyState::Patrol;
                     e.vel_x = e.facing_left ? -e.def->patrol_speed : e.def->patrol_speed;
                     e.vel_y = 0.0f;
-                } else if (!e.def->has_shell || e.state == EnemyState::Sliding) {
+                } else if (!e.def->has_shell || e.state == EnemyState::Sliding || e.state == EnemyState::Shell) {
+                    // Stomp stationary shell → instant kill; sliding shell also dies on stomp
                     e.state      = EnemyState::Dead;
                     e.dead_timer = e.def->dead_duration;
                     e.vel_x      = 0.0f;
@@ -204,12 +221,6 @@ void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID pla
                     e.state       = EnemyState::Shell;
                     e.vel_x       = 0.0f;
                     e.shell_timer = e.def->shell_wait_time;
-                } else if (e.state == EnemyState::Shell) {
-                    bool player_left = (player.GetX() + player.GetW() * 0.5f) < (e.pos_x + e.def->w * 0.5f);
-                    e.state             = EnemyState::Sliding;
-                    e.vel_x             = player_left ? e.def->shell_slide_speed : -e.def->shell_slide_speed;
-                    e.facing_left       = !player_left;
-                    e.slide_bounce_count = 0;
                 }
                 break;  // one stomp per enemy per frame
             } else {
@@ -235,28 +246,55 @@ void EnemyManager::HandleCollisions(const CollisionEventPool& pool, EntityID pla
     // --- Sliding shell kills other enemies ---
     for (auto& shell : _enemies) {
         if (!shell.active || shell.state != EnemyState::Sliding) continue;
+        if (shell.hit_cooldown > 0.0f) continue; // attacker can't trigger another hit yet
+        if (shell.penetrable) continue; // already engaged in a shell-vs-shell pass-through this frame
 
         for (auto& victim : _enemies) {
             if (!victim.active || victim.state == EnemyState::Dead) continue;
             if (&shell == &victim) continue;
+            if (victim.hit_cooldown > 0.0f) continue; // already counted for this chain
+            if (victim.penetrable) continue;
 
             if (AABB::Overlaps(shell.GetAABB(), victim.GetAABB())) {
-                _pending_score += 100;
                 if (victim.state == EnemyState::Sliding) {
-                    // Two sliding shells collide — bounce off each other
-                    shell.vel_x  = -shell.vel_x;
-                    victim.vel_x = -victim.vel_x;
-                } else if (victim.def->has_shell) {
-                    victim.state      = EnemyState::Shell;
-                    victim.vel_x      = 0.0f;
-                    victim.shell_timer = victim.def->shell_wait_time;
+                    // Two sliding shells pass through each other — no score, no interaction
+                    shell.penetrable = true;
+                    victim.penetrable = true;
                 } else {
-                    victim.state      = EnemyState::Dead;
-                    victim.dead_timer = victim.def->dead_duration;
-                    victim.vel_x      = 0.0f;
-                    victim.vel_y      = 0.0f;
+                    _pending_score += 100;
+                    victim.hit_cooldown  = 0.5f; // immune to further sliding-shell hits for 0.5s
+                    shell.hit_cooldown   = 0.1f; // brief cooldown so attacker doesn't double-kill next victim same frame
+
+                    if (victim.def->has_shell) {
+                        victim.state             = EnemyState::Sliding;
+                        victim.vel_x             = (shell.vel_x > 0.0f) ? -victim.def->shell_slide_speed : victim.def->shell_slide_speed;
+                        victim.facing_left       = (victim.vel_x < 0.0f);
+                        victim.slide_bounce_count = 0;
+                        victim.shell_timer       = 0.0f;
+
+                        // Separate AABBs so they fly apart cleanly
+                        AABB sa = shell.GetAABB();
+                        if (victim.vel_x < 0.0f) {
+                            victim.pos_x = sa.x - victim.GetW() - 0.1f;
+                        } else {
+                            victim.pos_x = sa.x + sa.w + 0.1f;
+                        }
+                    } else {
+                        victim.state      = EnemyState::Dead;
+                        victim.dead_timer = victim.def->dead_duration;
+                        victim.vel_x      = 0.0f;
+                        victim.vel_y      = 0.0f;
+                    }
                 }
             }
+        }
+    }
+
+    // Reset per-frame flags (cooldown ticks down in Update)
+    for (auto& e : _enemies) {
+        if (e.active) {
+            e.hit_by_sliding = false;
+            e.penetrable      = false;
         }
     }
 
@@ -293,4 +331,4 @@ void EnemyManager::ClearAll() {
         }
     }
     _pending_score = 0;
-}
+}
