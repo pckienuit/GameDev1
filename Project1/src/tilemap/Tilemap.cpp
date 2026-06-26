@@ -62,7 +62,22 @@ bool Tilemap::IsOneWay(int col, int row) const {
 
 bool Tilemap::IsBlockingFall(int col, int row) const {
     if (col < 0 || col >= _cols || row < 0 || row >= _rows) return false;
-    return (_tiles[row*_cols + col].type == TileType::Ground || 
-            _tiles[row*_cols + col].type == TileType::Brick  || 
+    return (_tiles[row*_cols + col].type == TileType::Ground ||
+            _tiles[row*_cols + col].type == TileType::Brick  ||
             _tiles[row*_cols + col].type == TileType::OneWay);
+}
+
+bool Tilemap::HitQBlock(int col, int row) {
+    if (col < 0 || col >= _cols || row < 0 || row >= _rows) return false;
+    Tile& tile = _tiles[row * _cols + col];
+    if (tile.type != TileType::QBlock) return false;
+    if (tile.used) return false;
+    tile.used = true;
+    return true;
+}
+
+bool Tilemap::IsQBlockUsed(int col, int row) const {
+    if (col < 0 || col >= _cols || row < 0 || row >= _rows) return true;
+    const Tile& tile = _tiles[row * _cols + col];
+    return tile.type != TileType::QBlock || tile.used;
 }

@@ -41,9 +41,13 @@ Game::Game() : _window("Mario Engine", 800, 600),
     // -----------------------------------------------------------------------
 
     // Tilemap
-    _sprite_sheet.Define(SpriteID::BrickTile,  "assets/misc.png", 300, 135, 16, 16);
-    _sprite_sheet.Define(SpriteID::GroundTile, "assets/misc.png", 354, 153, 16, 16);
-    _sprite_sheet.Define(SpriteID::QBlockTile0,"assets/misc.png", 408, 171, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BrickTile,   "assets/misc.png", 300, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::GroundTile,  "assets/misc.png", 354, 153, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockTile0, "assets/misc.png", 300, 117, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockTile1, "assets/misc.png", 318, 117, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockTile2, "assets/misc.png", 336, 117, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockTile3, "assets/misc.png", 354, 117, 16, 16);
+    _sprite_sheet.Define(SpriteID::QBlockUsed,  "assets/misc.png", 372, 117, 16, 16);
     _sprite_sheet.Define(SpriteID::PipeTL,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeTR,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeL,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
@@ -144,6 +148,11 @@ Game::Game() : _window("Mario Engine", 800, 600),
                                           SpriteID::Coin1,
                                           SpriteID::Coin2}, 0.3f, true);
 
+    _qblock_anim = Animation(_sprite_sheet, {SpriteID::QBlockTile0,
+                                             SpriteID::QBlockTile1,
+                                             SpriteID::QBlockTile2,
+                                             SpriteID::QBlockTile3}, 0.2f, true);
+
     // Start at Title screen — don't load level yet
     _state       = GameState::Title;
     _fade_alpha  = 0.0f;
@@ -153,6 +162,9 @@ void Game::LoadLevel(const LevelDef& level) {
     // ---- Clear dynamic state ----
     _enemy_manager.ClearAll();
     _coins.clear();
+    _qblock_bumps.clear();
+    _rising_coins.clear();
+    _qblock_flash_timer = 0.0f;
     _flag_aabb = { -9999.0f, 0.0f, 0.0f, 0.0f };
 
     // ---- Background color & layers ----
@@ -331,6 +343,31 @@ void Game::UpdatePlaying(float real_dt) {
                 _player.ClampVelocityAlongNormal(-ev.normal_x, -ev.normal_y, ev.hit_time);
         }
         _player.Move(DT, _tilemap);
+
+        // QBlock hit detection
+        auto [hit_col, hit_row] = _player.ConsumeQBlockHit();
+        if (hit_col >= 0 && _tilemap.HitQBlock(hit_col, hit_row)) {
+            _qblock_bumps.push_back({ hit_col, hit_row, 0.0f });
+            const float tile_size = static_cast<float>(_tilemap.GetTileSize());
+            const float coin_x    = hit_col * tile_size;
+            const float coin_y    = hit_row * tile_size - tile_size;
+            _rising_coins.push_back({ coin_x, coin_y, coin_y, 0.0f });
+            _score += 10;
+            _sound_manager.Play(SoundID::Coin);
+        }
+
+        // Tick QBlock bump + rising coin animations
+        _qblock_flash_timer += DT;
+        for (auto it = _qblock_bumps.begin(); it != _qblock_bumps.end(); ) {
+            it->timer += DT;
+            if (it->timer >= QBLOCK_BUMP_DURATION) it = _qblock_bumps.erase(it);
+            else ++it;
+        }
+        for (auto it = _rising_coins.begin(); it != _rising_coins.end(); ) {
+            it->t += DT;
+            if (it->t >= COIN_RISE_DURATION) it = _rising_coins.erase(it);
+            else ++it;
+        }
 
         // Check death pits
         const float pit_y = _tilemap.GetHeight() + 100.0f;
@@ -568,6 +605,8 @@ void Game::RenderWorld() {
     _enemy_manager.RenderAll(_sprite_batch, DT);
 
     // Tilemap
+    const int tile_size = _tilemap.GetTileSize();
+    const Sprite& qblock_sprite = _qblock_anim.Update(DT);
     for (int row = 0; row < _tilemap.GetRows(); ++row) {
         for (int col = 0; col < _tilemap.GetCols(); ++col) {
             const auto& tile = _tilemap.GetTile(col, row);
@@ -575,14 +614,41 @@ void Game::RenderWorld() {
 
             SpriteID sid = SpriteID::BrickTile;
             if (tile.type == TileType::Ground) sid = SpriteID::GroundTile;
-            else if (tile.type == TileType::QBlock) sid = SpriteID::QBlockTile0;
             else if (tile.type == TileType::Pipe) sid = SpriteID::PipeTL; // Simplified for now
 
-            int t_size = _tilemap.GetTileSize();
-            _sprite_batch.Draw(col * t_size, row * t_size,
-                               static_cast<float>(t_size), static_cast<float>(t_size),
-                               _sprite_sheet.Get(sid), 1.0f, 1.0f, 1.0f, 1.0f);
+            float y_offset = 0.0f;
+            for (const auto& bump : _qblock_bumps) {
+                if (bump.col == col && bump.row == row) {
+                    const float progress = bump.timer / QBLOCK_BUMP_DURATION;
+                    const float t = (progress < 0.5f) ? (progress * 2.0f) : (1.0f - (progress - 0.5f) * 2.0f);
+                    y_offset = -QBLOCK_BUMP_HEIGHT * t;
+                    break;
+                }
+            }
+
+            // QBlock: use animation sprite for non-used blocks
+            if (tile.type == TileType::QBlock) {
+                const Sprite& sprite = tile.used ? _sprite_sheet.Get(SpriteID::QBlockUsed)
+                                                 : qblock_sprite;
+                _sprite_batch.Draw(static_cast<float>(col * tile_size),
+                                   static_cast<float>(row * tile_size) + y_offset,
+                                   static_cast<float>(tile_size), static_cast<float>(tile_size),
+                                   sprite, 1.0f, 1.0f, 1.0f, 1.0f);
+            } else {
+                _sprite_batch.Draw(static_cast<float>(col * tile_size),
+                                   static_cast<float>(row * tile_size) + y_offset,
+                                   static_cast<float>(tile_size), static_cast<float>(tile_size),
+                                   _sprite_sheet.Get(sid), 1.0f, 1.0f, 1.0f, 1.0f);
+            }
         }
+    }
+
+    // Rising coins (spawned by QBlock hits)
+    for (const auto& rc : _rising_coins) {
+        const float progress = rc.t / COIN_RISE_DURATION;
+        const float y = rc.start_y - COIN_RISE_HEIGHT * progress;
+        _sprite_batch.Draw(rc.x, y, static_cast<float>(tile_size), static_cast<float>(tile_size),
+                           coin_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     // Flag

@@ -8,7 +8,9 @@
 #include "../renderer/Texture.h"
 #include "../renderer/TextureRegistry.h"
 #include "../renderer/SpriteSheet.h"
+#include "../renderer/Sprite.h"
 #include "../renderer/Camera.h"
+#include "../renderer/Animation.h"
 #include "../ecs/EntityManager.h"
 #include "../tilemap/Tilemap.h"
 #include "../collision/CollisionSystem.h"
@@ -102,6 +104,19 @@ private:
     // Coins
     std::vector<AABB>     _coins;
     Animation             _coin_anim;
+    Animation             _qblock_anim;
+
+    // QBlock animations
+    struct QBlockBump { int col; int row; float timer; };
+    std::vector<QBlockBump> _qblock_bumps;
+    struct RisingCoin { float x; float y; float start_y; float t; };
+    std::vector<RisingCoin> _rising_coins;
+    static constexpr float QBLOCK_BUMP_DURATION = 0.2f;
+    static constexpr float QBLOCK_BUMP_HEIGHT   = 8.0f;
+    static constexpr float QBLOCK_ANIM_DURATION = 0.4f;
+    static constexpr float COIN_RISE_DURATION   = 0.6f;
+    static constexpr float COIN_RISE_HEIGHT     = 64.0f;
+    float _qblock_flash_timer = 0.0f;
 
     // Fade overlay
     Texture               _fade_texture;

@@ -4,7 +4,7 @@ enum class SpriteID : int {
     // Tilemap
     BrickTile,
     GroundTile,
-    QBlockTile0, QBlockTile1,
+    QBlockTile0, QBlockTile1, QBlockTile2, QBlockTile3, QBlockUsed,
     PipeTL, PipeTR, PipeL, PipeR,
 
     // Decorations

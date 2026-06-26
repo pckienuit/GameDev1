@@ -171,6 +171,8 @@ void Player::Move(float dt, const Tilemap& tilemap) {
     }
 
     _is_grounded = false;
+    _last_qblock_col = -1;
+    _last_qblock_row = -1;
     // === MOVE & RESOLVE X ===
     _pos_x += _vel_x * dt;
 
@@ -233,6 +235,18 @@ void Player::Move(float dt, const Tilemap& tilemap) {
             _pos_y = (tile_row+1) * tilemap.GetTileSize();
             _vel_y = 0;
         }
+
+        if (_last_qblock_col < 0) {
+            const Tile& left_tile  = tilemap.GetTile(col_left, tile_row);
+            const Tile& mid_tile   = tilemap.GetTile(col_mid, tile_row);
+            const Tile& right_tile = tilemap.GetTile(col_right, tile_row);
+            if (left_tile.type == TileType::QBlock && !left_tile.used)
+                _last_qblock_col = col_left, _last_qblock_row = tile_row;
+            else if (mid_tile.type == TileType::QBlock && !mid_tile.used)
+                _last_qblock_col = col_mid, _last_qblock_row = tile_row;
+            else if (right_tile.type == TileType::QBlock && !right_tile.used)
+                _last_qblock_col = col_right, _last_qblock_row = tile_row;
+        }
     }
 }
 
@@ -285,5 +299,11 @@ void Player::SetPosition(float x, float y) {
 void Player::FullReset(float x, float y) {
     SetPosition(x, y);
     _lives = STARTING_LIVES;
+    _last_qblock_col = -1;
+    _last_qblock_row = -1;
 }
-
+
+std::pair<int,int> Player::ConsumeQBlockHit() {
+    return { _last_qblock_col, _last_qblock_row };
+}
+

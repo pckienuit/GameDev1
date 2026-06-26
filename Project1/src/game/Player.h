@@ -6,6 +6,7 @@
 #include "../ecs/EntityManager.h"
 #include <cmath>
 #include <algorithm>
+#include <utility>
 
 class Player {
 public:
@@ -53,6 +54,8 @@ public:
     bool  IsGameOver()   const { return _game_over; }
     int   GetLives()     const { return _lives; }
     bool  ShouldRender() const;          // blink
+    bool  HitCeilingThisFrame() const { return _last_qblock_col >= 0; }
+    std::pair<int,int> ConsumeQBlockHit();
 
     // Full reset for new game (Title → Play): restores lives + clears game_over
     void  FullReset(float x, float y);
@@ -91,4 +94,7 @@ private:
     Animation _anim_walk;
     Animation _anim_jump;
     bool _facing_left = false;
+
+    int _last_qblock_col = -1;
+    int _last_qblock_row = -1;
 };

@@ -15,6 +15,7 @@ enum class TileType : uint8_t {
 
 struct Tile {
     TileType type = TileType::Empty;
+    bool used = false;
 };
 
 struct SpawnInfo {
@@ -48,6 +49,9 @@ public:
     bool IsSolid(int col, int row) const;
     bool IsOneWay(int col, int row) const;
     bool IsBlockingFall(int col, int row) const;
+
+    bool HitQBlock(int col, int row);
+    bool IsQBlockUsed(int col, int row) const;
 
     const std::vector<SpawnInfo>& GetSpawnPoints() const { return _spawn_points; }
 
