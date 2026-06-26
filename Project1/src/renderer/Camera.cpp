@@ -8,11 +8,15 @@ Camera::Camera(float vw, float vh)
 void Camera::Follow(float target_x, float target_y, float dt) {
 
     float player_screen_x = target_x - _x;
+    float player_screen_y = target_y - _y;
 
-    float dz_left  = _viewport_w * VIEW_RATIO;
-    float dz_right = _viewport_w * (1 - VIEW_RATIO);
+    float dz_left   = _viewport_w * VIEW_RATIO;
+    float dz_right  = _viewport_w * (1 - VIEW_RATIO);
+    float dz_top    = _viewport_h * VIEW_RATIO;
+    float dz_bottom = _viewport_h * (1 - VIEW_RATIO);
 
     float target_cam_x = _x;
+    float target_cam_y = _y;
 
     if (player_screen_x < dz_left) {
         target_cam_x = _x - (dz_left-player_screen_x);
@@ -21,10 +25,16 @@ void Camera::Follow(float target_x, float target_y, float dt) {
         target_cam_x = _x + (player_screen_x-dz_right);
     }
 
+    if (player_screen_y < dz_top) {
+        target_cam_y = _y - (dz_top - player_screen_y);
+    }
+    else if (player_screen_y > dz_bottom) {
+        target_cam_y = _y + (player_screen_y - dz_bottom);
+    }
+
     // Smooth follow use exponential decay
     _x += (target_cam_x - _x) * (1.0f - expf(-LERP_SPEED * dt));
-
-    _y = 0.0f;
+    _y += (target_cam_y - _y) * (1.0f - expf(-LERP_SPEED * dt));
 }
 
 void Camera::Clamp(float world_w, float world_h) {
