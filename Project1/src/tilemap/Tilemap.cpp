@@ -28,6 +28,7 @@ int Tilemap::PixelToRow(float y) const {
     return static_cast<int>(y / _tile_size);
 }
 bool Tilemap::LoadFromFile(const std::string& path) {
+    _spawn_points.clear();
     std::ifstream file(path);
     if (!file.is_open()) return false;
 

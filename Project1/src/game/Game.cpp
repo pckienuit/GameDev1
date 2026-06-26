@@ -52,7 +52,7 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::QBlockTile2, "assets/misc.png", 336, 117, 16, 16);
     _sprite_sheet.Define(SpriteID::QBlockTile3, "assets/misc.png", 354, 117, 16, 16);
     _sprite_sheet.Define(SpriteID::QBlockUsed,  "assets/misc.png", 372, 117, 16, 16);
-    _sprite_sheet.Define(SpriteID::PipeTL,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::PipeTL,     "assets/enemies.png", 53, 102, 30, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeTR,     "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeL,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::PipeR,      "assets/misc.png", 0, 0, 16, 16); // PLACEHOLDER
@@ -88,14 +88,14 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::KoopaDead,  "assets/enemies.png", 50, 139, 16, 16);
     _sprite_sheet.Define(SpriteID::KoopaShell, "assets/enemies.png", 71, 139, 18, 16);
 
-    // FlyKoopa — enemies.png (PLACEHOLDERS)
-    _sprite_sheet.Define(SpriteID::FlyKoopaWalk0, "assets/enemies.png", 135, 129, 16, 27); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::FlyKoopaWalk1, "assets/enemies.png", 157, 128, 16, 28); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::FlyKoopaWing,  "assets/enemies.png", 135, 129, 16, 27); // PLACEHOLDER
+    // FlyKoopa — enemies.png
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk0, "assets/enemies.png", 135, 129, 16, 27);
+    _sprite_sheet.Define(SpriteID::FlyKoopaWalk1, "assets/enemies.png", 157, 128, 16, 28);
+    _sprite_sheet.Define(SpriteID::FlyKoopaWing,  "assets/enemies.png", 135, 129, 16, 27);
 
-    // Piranha Plant — enemies.png (PLACEHOLDERS)
-    _sprite_sheet.Define(SpriteID::PiranhaUp0, "assets/enemies.png", 151, 62, 16, 24); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 197, 62, 16, 24); // PLACEHOLDER
+    // Piranha Plant — enemies.png
+    _sprite_sheet.Define(SpriteID::PiranhaUp0, "assets/enemies.png", 151, 62, 16, 24);
+    _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 197, 62, 16, 24);
 
     // Objects
     _sprite_sheet.DefineWithColorKey(SpriteID::Flag, "assets/flag.png", 1, 1268, 160, 180, 0x93, 0xBB, 0xEC);
@@ -196,6 +196,7 @@ void Game::LoadLevel(const LevelDef& level) {
         _background.AddLayer(SpriteID::BgStars0, 0.1f, 0.0f, 512.0f, 512.0f);
         _background.AddLayer(SpriteID::BgStars1, 0.3f, 384.0f, 512.0f, 128.0f);
         _background.AddLayer(SpriteID::BgStars2, 0.5f, 512.0f, 512.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgStars1, 0.8f, 640.0f, 512.0f, 128.0f);
     }
     else {
         // Level 3 - Sunset Castle
@@ -381,7 +382,7 @@ void Game::UpdatePlaying(float real_dt) {
         // Check death pits
         const float pit_y = _tilemap.GetHeight() + 100.0f;
         if (_player.GetY() > pit_y) {
-            _player.Hurt(); // instant death if below map
+            _player.Kill(); // instant death if below map
         }
 
         // Jump sound

@@ -47,6 +47,7 @@ public:
     void SetPosition(float x, float y);
 
     void Hurt();
+    void Kill();
     void Bounce(float bounce_height) { _vel_y = bounce_height; }
 
     void  TickInvincibility(float dt);
