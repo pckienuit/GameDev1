@@ -26,6 +26,17 @@ void SpriteSheet::DefineNamed(SpriteID id, const std::string& name,
     _name_to_id[name] = id;
 }
 
+void SpriteSheet::DefineWithColorKey(SpriteID id, const std::string& texture_path,
+                                    int x, int y, int w, int h,
+                                    unsigned char r, unsigned char g, unsigned char b) {
+    int idx = static_cast<int>(id);
+    assert(idx >= 0 && idx < static_cast<int>(SpriteID::Count));
+
+    Texture* tex = _registry.LoadWithColorKey(_device, texture_path, r, g, b);
+    _sprites[idx] = Sprite(tex, x, y, w, h);
+    _defined[idx] = true;
+}
+
 void SpriteSheet::DefineStrip(SpriteID first_id, int count,
                               const std::string& texture_path,
                               int start_x, int y, int frame_w, int frame_h,

@@ -82,6 +82,7 @@ private:
     GameState             _state       = GameState::Title;
     float                 _state_timer = 0.0f;
     bool                  _die_sound_played = false;
+    bool                  _level_loaded = false;
 
     EntityManager         _entity_manager;
     Tilemap               _tilemap;

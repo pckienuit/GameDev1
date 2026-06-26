@@ -8,6 +8,8 @@
 class TextureRegistry {
 public:
     Texture* Load(ID3D11Device* device, const std::string& path);
+    Texture* LoadWithColorKey(ID3D11Device* device, const std::string& path,
+                             unsigned char r, unsigned char g, unsigned char b);
 
 private:
     std::unordered_map< std::string, std::unique_ptr<Texture> > _cache;

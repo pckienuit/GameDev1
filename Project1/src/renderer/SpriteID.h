@@ -11,7 +11,7 @@ enum class SpriteID : int {
     Cloud, Bush, Hill,
     
     // Background
-    BgMountain, BgClouds0, BgClouds1, BgClouds2, BgTrees, BgCastle, BgStars,
+    BgMountain, BgClouds0, BgClouds1, BgClouds2, BgTrees, BgCastle, BgStars0, BgStars1, BgStars2, BgSandHills,
 
     // Entities
     MarioIdle,

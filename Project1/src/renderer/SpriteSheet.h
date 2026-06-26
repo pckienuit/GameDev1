@@ -24,6 +24,11 @@ public:
                      const std::string& texture_path,
                      int x, int y, int w, int h);
 
+    // Define với color-key cho sprite có nền trong suốt (như flag)
+    void DefineWithColorKey(SpriteID id, const std::string& texture_path,
+                           int x, int y, int w, int h,
+                           unsigned char r, unsigned char g, unsigned char b);
+
     // Define dải frame liên tiếp (first_id, first_id+1, ...)
     // gap: pixel gap giữa các frame (nếu có)
     void DefineStrip(SpriteID first_id, int count,

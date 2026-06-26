@@ -57,7 +57,10 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::BgClouds2,  background_texture_path, 514, 10, 512, 512); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::BgTrees,    background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
     _sprite_sheet.Define(SpriteID::BgCastle,   background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
-    _sprite_sheet.Define(SpriteID::BgStars,    background_texture_path, 0, 0, 256, 128); // PLACEHOLDER
+    _sprite_sheet.Define(SpriteID::BgStars0,    background_texture_path, 1, 5721, 512, 512);
+    _sprite_sheet.Define(SpriteID::BgStars1,    background_texture_path, 1, 5849, 512, 128);
+    _sprite_sheet.Define(SpriteID::BgStars2,    background_texture_path, 1, 5977, 512, 128);
+    _sprite_sheet.Define(SpriteID::BgSandHills,    background_texture_path, 1, 915, 512, 128);
 
     // Player — mario.png
     _sprite_sheet.Define(SpriteID::MarioIdle,  "assets/mario.png", 245, 154, 16, 26);
@@ -87,7 +90,7 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _sprite_sheet.Define(SpriteID::PiranhaUp1, "assets/enemies.png", 197, 62, 16, 24); // PLACEHOLDER
 
     // Objects
-    _sprite_sheet.Define(SpriteID::Flag, "assets/flag.png", 0, 1268, 160, 160);
+    _sprite_sheet.DefineWithColorKey(SpriteID::Flag, "assets/flag.png", 1, 1268, 160, 180, 0x93, 0xBB, 0xEC);
     _sprite_sheet.Define(SpriteID::Coin0, "assets/misc.png", 303, 99,  10,  16);
     _sprite_sheet.Define(SpriteID::Coin1, "assets/misc.png", 321, 99,  10,  16);
     _sprite_sheet.Define(SpriteID::Coin2, "assets/misc.png", 339, 99,  10,  16);
@@ -169,13 +172,15 @@ void Game::LoadLevel(const LevelDef& level) {
     } 
     else if (lvl_idx == 1) {
         // Level 2 - Nighttime (Stars)
-        _background.AddLayer(SpriteID::BgStars, 0.1f, 0.0f, 256.0f, 128.0f);
-        _background.AddLayer(SpriteID::BgTrees, 0.6f, 300.0f, 256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgStars0, 0.1f, 0.0f, 512.0f, 512.0f);
+        _background.AddLayer(SpriteID::BgStars1, 0.3f, 384.0f, 512.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgStars2, 0.5f, 512.0f, 512.0f, 128.0f);
     }
     else {
         // Level 3 - Sunset Castle
-        _background.AddLayer(SpriteID::BgClouds1, 0.2f, 100.0f,  256.0f, 128.0f);
-        _background.AddLayer(SpriteID::BgCastle, 0.5f, 200.0f, 256.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgClouds2,  0.2f, 0.0f,  512.0f, 512.0f);
+        _background.AddLayer(SpriteID::BgClouds1,  0.5f, 384.0f, 512.0f, 128.0f);
+        _background.AddLayer(SpriteID::BgSandHills, 0.9f, 512.0f, 512.0f, 128.0f);
     }
 
     // ---- Reset player position (keep score & lives) ----
@@ -219,6 +224,7 @@ void Game::LoadLevel(const LevelDef& level) {
     _level_timer = LEVEL_TIME;
     _timer_bonus_shown = false;
     _bonus_display_timer = 0.0f;
+    _level_loaded = true;
 }
 
 // =======================================================================
@@ -386,6 +392,7 @@ void Game::UpdateDying(float real_dt) {
     if (!_die_sound_played) {
         _sound_manager.Play(SoundID::Die);
         _die_sound_played = true;
+        _level_loaded = false;  // Mark level as needing reload
     }
 
     _state_timer -= real_dt;
@@ -398,8 +405,10 @@ void Game::UpdateDying(float real_dt) {
 
     if (_state_timer <= 0.0f) {
         if (_player.GetLives() > 0) {
-            // Retry same level
-            LoadLevel(_level_manager.GetCurrent());
+            // Retry same level (only if not already loaded to prevent double spawn)
+            if (!_level_loaded) {
+                LoadLevel(_level_manager.GetCurrent());
+            }
             _state       = GameState::LevelIntro;
             _state_timer = 2.0f;
             _fade_alpha  = 0.0f;
@@ -504,11 +513,17 @@ void Game::Render() {
             break;
 
         case GameState::GameOver:
+            _background.Render(_sprite_batch, _sprite_sheet, _camera.GetX(), _camera.GetY(),
+                             static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT));
+            _camera.Reset();  // Reset camera so text centers on screen
             RenderCenteredText("GAME OVER", 200.0f, 5.0f);
             RenderCenteredText("PRESS ENTER TO RETRY", 340.0f, 2.5f);
             break;
 
         case GameState::Victory:
+            _background.Render(_sprite_batch, _sprite_sheet, _camera.GetX(), _camera.GetY(),
+                             static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT));
+            _camera.Reset();  // Reset camera so text centers on screen
             RenderCenteredText("YOU WIN", 180.0f, 5.0f);
             {
                 std::string score_text = "SCORE " + std::to_string(_score);
@@ -621,10 +636,7 @@ void Game::RenderFade() {
 }
 
 void Game::RenderCenteredText(const std::string& text, float y, float scale) {
-    // Approximate centering: each char ~ 8*scale + gap
-    const float char_w = 8.0f * scale;
-    const float gap    = 4.0f * (scale / 2.5f);
-    const float total  = text.size() * char_w + (text.size() - 1) * gap;
-    const float x      = (WORLD_WIDTH - total) / 2.0f;
+    const float total = ScoreRenderer::MeasureTextWidth(text, scale);
+    const float x     = (WORLD_WIDTH - total) / 2.0f;
     _score_renderer.DrawText(_sprite_batch, text, x, y, 0.0f, 0.0f, scale);
 }
