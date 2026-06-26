@@ -51,6 +51,9 @@ const Sprite& Animation::Update(float dt) {
         }
     }
 
+    if (_current_idx < 0 || _current_idx >= static_cast<int>(_frame_ids.size())) {
+        _current_idx = 0;
+    }
     _current_sprite = _sheet->Get(_frame_ids[_current_idx]);
     return _current_sprite;
 }
@@ -59,6 +62,8 @@ void Animation::Reset() {
     _current_idx = 0;
     _timer       = 0.0f;
     if (_sheet && !_frame_ids.empty()) {
-        _current_sprite = _sheet->Get(_frame_ids[0]);
+        if (_current_idx >= 0 && _current_idx < static_cast<int>(_frame_ids.size())) {
+            _current_sprite = _sheet->Get(_frame_ids[0]);
+        }
     }
 }

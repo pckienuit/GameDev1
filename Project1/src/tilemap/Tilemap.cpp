@@ -1,6 +1,7 @@
 #include "Tilemap.h"
 #include <fstream>
 #include <sstream>
+#include <cassert>
 #include <string>
 
 Tilemap::Tilemap(int cols, int rows, int tile_size) :
@@ -10,10 +11,12 @@ Tilemap::Tilemap(int cols, int rows, int tile_size) :
 }
 
 Tile& Tilemap::GetTile(int col, int row) {
+    assert(col >= 0 && col < _cols && row >= 0 && row < _rows);
     return _tiles[row*_cols + col];
 }
 
 const Tile& Tilemap::GetTile(int col, int row) const {
+    assert(col >= 0 && col < _cols && row >= 0 && row < _rows);
     return _tiles[row*_cols + col];
 }
 

@@ -237,15 +237,20 @@ void Player::Move(float dt, const Tilemap& tilemap) {
         }
 
         if (_last_qblock_col < 0) {
-            const Tile& left_tile  = tilemap.GetTile(col_left, tile_row);
-            const Tile& mid_tile   = tilemap.GetTile(col_mid, tile_row);
-            const Tile& right_tile = tilemap.GetTile(col_right, tile_row);
-            if (left_tile.type == TileType::QBlock && !left_tile.used)
-                _last_qblock_col = col_left, _last_qblock_row = tile_row;
-            else if (mid_tile.type == TileType::QBlock && !mid_tile.used)
-                _last_qblock_col = col_mid, _last_qblock_row = tile_row;
-            else if (right_tile.type == TileType::QBlock && !right_tile.used)
-                _last_qblock_col = col_right, _last_qblock_row = tile_row;
+            if (col_left >= 0 && col_left < tilemap.GetCols()
+                && col_mid >= 0 && col_mid < tilemap.GetCols()
+                && col_right >= 0 && col_right < tilemap.GetCols()
+                && tile_row >= 0 && tile_row < tilemap.GetRows()) {
+                const Tile& left_tile  = tilemap.GetTile(col_left, tile_row);
+                const Tile& mid_tile   = tilemap.GetTile(col_mid, tile_row);
+                const Tile& right_tile = tilemap.GetTile(col_right, tile_row);
+                if (left_tile.type == TileType::QBlock && !left_tile.used)
+                    _last_qblock_col = col_left, _last_qblock_row = tile_row;
+                else if (mid_tile.type == TileType::QBlock && !mid_tile.used)
+                    _last_qblock_col = col_mid, _last_qblock_row = tile_row;
+                else if (right_tile.type == TileType::QBlock && !right_tile.used)
+                    _last_qblock_col = col_right, _last_qblock_row = tile_row;
+            }
         }
     }
 }
