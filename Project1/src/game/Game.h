@@ -105,6 +105,7 @@ private:
     std::vector<AABB>     _coins;
     Animation             _coin_anim;
     Animation             _qblock_anim;
+    Animation             _brick_anim;
 
     // QBlock animations
     struct QBlockBump { int col; int row; float timer; };

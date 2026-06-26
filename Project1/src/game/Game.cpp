@@ -41,8 +41,12 @@ Game::Game() : _window("Mario Engine", 800, 600),
     // -----------------------------------------------------------------------
 
     // Tilemap
-    _sprite_sheet.Define(SpriteID::BrickTile,   "assets/misc.png", 300, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::BrickTile0,  "assets/misc.png", 300, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::BrickTile1,  "assets/misc.png", 318, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::BrickTile2,  "assets/misc.png", 336, 135, 16, 16);
+    _sprite_sheet.Define(SpriteID::BrickTile3,  "assets/misc.png", 354, 135, 16, 16);
     _sprite_sheet.Define(SpriteID::GroundTile,  "assets/misc.png", 354, 153, 16, 16);
+    _sprite_sheet.Define(SpriteID::OneWayTile,  "assets/misc.png", 408, 171, 16, 16);
     _sprite_sheet.Define(SpriteID::QBlockTile0, "assets/misc.png", 300, 117, 16, 16);
     _sprite_sheet.Define(SpriteID::QBlockTile1, "assets/misc.png", 318, 117, 16, 16);
     _sprite_sheet.Define(SpriteID::QBlockTile2, "assets/misc.png", 336, 117, 16, 16);
@@ -151,7 +155,12 @@ Game::Game() : _window("Mario Engine", 800, 600),
     _qblock_anim = Animation(_sprite_sheet, {SpriteID::QBlockTile0,
                                              SpriteID::QBlockTile1,
                                              SpriteID::QBlockTile2,
-                                             SpriteID::QBlockTile3}, 0.2f, true);
+                                             SpriteID::QBlockTile3}, 0.3f, true);
+
+    _brick_anim = Animation(_sprite_sheet, {SpriteID::BrickTile0,
+                                            SpriteID::BrickTile1,
+                                            SpriteID::BrickTile2,
+                                            SpriteID::BrickTile3}, 0.3f, true);
 
     // Start at Title screen — don't load level yet
     _state       = GameState::Title;
@@ -585,7 +594,7 @@ void Game::RenderWorld() {
 
     // Dummy block
     _sprite_batch.Draw(_dummy_aabb.x, _dummy_aabb.y, _dummy_aabb.w, _dummy_aabb.h,
-                       _sprite_sheet.Get(SpriteID::BrickTile), 1.0f, 0.2f, 0.2f, 1.0f);
+                       _sprite_sheet.Get(SpriteID::BrickTile0), 1.0f, 0.2f, 0.2f, 1.0f);
 
     // Player
     if (_player.ShouldRender()) {
@@ -607,14 +616,16 @@ void Game::RenderWorld() {
     // Tilemap
     const int tile_size = _tilemap.GetTileSize();
     const Sprite& qblock_sprite = _qblock_anim.Update(DT);
+    const Sprite& brick_sprite  = _brick_anim.Update(DT);
     for (int row = 0; row < _tilemap.GetRows(); ++row) {
         for (int col = 0; col < _tilemap.GetCols(); ++col) {
             const auto& tile = _tilemap.GetTile(col, row);
             if (tile.type == TileType::Empty) continue;
 
-            SpriteID sid = SpriteID::BrickTile;
+            SpriteID sid = SpriteID::BrickTile0;
             if (tile.type == TileType::Ground) sid = SpriteID::GroundTile;
             else if (tile.type == TileType::Pipe) sid = SpriteID::PipeTL; // Simplified for now
+            else if (tile.type == TileType::OneWay) sid = SpriteID::OneWayTile;
 
             float y_offset = 0.0f;
             for (const auto& bump : _qblock_bumps) {
@@ -634,6 +645,11 @@ void Game::RenderWorld() {
                                    static_cast<float>(row * tile_size) + y_offset,
                                    static_cast<float>(tile_size), static_cast<float>(tile_size),
                                    sprite, 1.0f, 1.0f, 1.0f, 1.0f);
+            } else if (tile.type == TileType::Brick) {
+                _sprite_batch.Draw(static_cast<float>(col * tile_size),
+                                   static_cast<float>(row * tile_size) + y_offset,
+                                   static_cast<float>(tile_size), static_cast<float>(tile_size),
+                                   brick_sprite, 1.0f, 1.0f, 1.0f, 1.0f);
             } else {
                 _sprite_batch.Draw(static_cast<float>(col * tile_size),
                                    static_cast<float>(row * tile_size) + y_offset,
