@@ -270,13 +270,10 @@ bool Game::Update() {
     return true;
 }
 
-// -----------------------------------------------------------------------
-// Title: wait for Enter
-// -----------------------------------------------------------------------
 void Game::UpdateTitle(float real_dt) {
     (void)real_dt;
     _input.Poll();
-    if (_input.IsPressed(Action::Jump)) {   // Enter / Space
+    if (_input.IsAnyKeyPressed()) {
         _level_manager.Reset();
         _score = 0;
         _player.FullReset(_level_manager.GetCurrent().player_start_x,
@@ -472,7 +469,7 @@ void Game::UpdateDying(float real_dt) {
 void Game::UpdateGameOver(float real_dt) {
     (void)real_dt;
     _input.Poll();
-    if (_input.IsPressed(Action::Jump)) {
+    if (_input.IsAnyKeyPressed()) {
         _state      = GameState::Title;
         _fade_alpha = 0.0f;
     }
@@ -511,13 +508,10 @@ void Game::UpdateLevelComplete(float real_dt) {
     }
 }
 
-// -----------------------------------------------------------------------
-// Victory: "YOU WIN" — Enter to quit
-// -----------------------------------------------------------------------
 void Game::UpdateVictory(float real_dt) {
     (void)real_dt;
     _input.Poll();
-    if (_input.IsPressed(Action::Jump)) {
+    if (_input.IsAnyKeyPressed()) {
         _state      = GameState::Title;
         _fade_alpha = 0.0f;
     }
@@ -535,7 +529,7 @@ void Game::Render() {
     switch (_state) {
         case GameState::Title:
             RenderCenteredText("MARIO GAME", 180.0f, 5.0f);
-            RenderCenteredText("PRESS ENTER TO START", 320.0f, 2.5f);
+            RenderCenteredText("PRESS ANY KEY TO START", 320.0f, 2.5f);
             break;
 
         case GameState::LevelIntro: {
@@ -564,7 +558,7 @@ void Game::Render() {
                              static_cast<float>(WORLD_WIDTH), static_cast<float>(WORLD_HEIGHT));
             _camera.Reset();  // Reset camera so text centers on screen
             RenderCenteredText("GAME OVER", 200.0f, 5.0f);
-            RenderCenteredText("PRESS ENTER TO RETRY", 340.0f, 2.5f);
+            RenderCenteredText("PRESS ANY KEY TO RESTART", 340.0f, 2.5f);
             break;
 
         case GameState::Victory:
@@ -576,7 +570,7 @@ void Game::Render() {
                 std::string score_text = "SCORE " + std::to_string(_score);
                 RenderCenteredText(score_text, 300.0f, 3.0f);
             }
-            RenderCenteredText("PRESS ENTER", 400.0f, 2.5f);
+            RenderCenteredText("PRESS ANY KEY", 400.0f, 2.5f);
             break;
     }
 

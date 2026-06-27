@@ -25,11 +25,11 @@
 // Game State Machine
 // -----------------------------------------------------------------------
 enum class GameState {
-    Title,          // "MARIO GAME" + "PRESS ENTER TO START"
+    Title,          // "MARIO GAME" + "PRESS ANY KEY TO START"
     LevelIntro,     // "WORLD X" countdown
     Playing,        // gameplay
     Dying,          // death animation running
-    GameOver,       // "GAME OVER" + "PRESS ENTER TO RETRY"
+    GameOver,       // "GAME OVER" + "PRESS ANY KEY TO RESTART"
     LevelComplete,  // win transition (fade out → next level)
     Victory,        // "YOU WIN" + final score
 };

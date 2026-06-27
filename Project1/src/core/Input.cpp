@@ -21,6 +21,11 @@ void Input::Poll() {
         _previous[i] = _current[i];
         _current[i]  = _sample(static_cast<Action>(i));
     }
+
+    for (int vk = 8; vk < 256; ++vk) {
+        _keys_previous[vk] = _keys_current[vk];
+        _keys_current[vk]  = (GetAsyncKeyState(vk) & 0x8000) != 0;
+    }
 }
 
 bool Input::IsPressed(Action a) const {
@@ -36,4 +41,13 @@ bool Input::IsHeld(Action a) const {
 bool Input::IsReleased(Action a) const {
     int i = static_cast<int>(a);
     return !_current[i] && _previous[i];
+}
+
+bool Input::IsAnyKeyPressed() const {
+    for (int vk = 8; vk < 256; ++vk) {
+        if (_keys_current[vk] && !_keys_previous[vk]) {
+            return true;
+        }
+    }
+    return false;
 }
